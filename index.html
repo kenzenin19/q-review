@@ -236,8 +236,10 @@ function $(id){return document.getElementById(id);}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function fmt(s){return "0:"+String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");}
 function answered(i){if(Q[i].type==="match")return matchAns(i).some(function(x){return x>-1;});if(Q[i].type==="drop")return dropAns(i).some(function(x){return x>-1;});return Q[i].type==="text"?S.ans[i].trim()!=="":S.ans[i].length>0;}
+function nrm(v){return String(v==null?"":v).toLowerCase().replace(/\s+/g,"");}
+function textOk(a,k){return nrm(a)!==""&&nrm(a)===nrm(k);}
 function correct(i){var q=Q[i];if(q.type==="match"){var m=matchAns(i);return m.every(function(x,k){return x===q.a[k];});}if(q.type==="drop"){var d=dropAns(i);return d.every(function(x,s){return x>-1&&q.o[x]===q.o[q.a[s]];});}
-  if(q.type==="text")return S.ans[i].trim()===q.a;
+  if(q.type==="text")return textOk(S.ans[i],q.a);
   return S.ans[i].length===q.a.length&&q.a.every(function(x){return S.ans[i].indexOf(x)>-1;});}
 function toast(msg){var t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove("show");},2200);}
 function resetQuiz(){S.cur=0;S.left=TOTAL;S.hide=false;S.confirm=false;S.finished=false;S.started=false;
@@ -543,7 +545,9 @@ function finish(timeUp){
   S.score=Q.reduce(function(s,q,i){return s+(correct(i)?(q.w||1):0);},0);
   S.scores[S.k]=S.score;S.timeUp=!!timeUp;saveAtt();saveAttemptDB();
   H[S.k].push({score:S.score,ans:JSON.parse(JSON.stringify(S.ans)),started:S.startedAt,completed:new Date(),secs:TOTAL-S.left});
-  S.view="review";renderReview();window.scrollTo(0,0);
+  if(lkv(S.k)){S.view="info";renderInfo();toast(lks(S.k)?"Attempt submitted. Your score and answers are locked.":"Attempt submitted. Your answers are locked.");}
+  else{S.view="review";renderReview();}
+  window.scrollTo(0,0);
 }
 function show(i){
   var q=Q[i],a=S.ans[i];
@@ -625,13 +629,15 @@ function revBody(q,i){
       return '<div class="mrow"><div class="mfig">'+f+'</div><div class="ro '+(ok?'right':(m[k]>-1?'wrong':''))+'" style="margin:0">'+(m[k]>-1?'Your answer: '+esc(q.o[m[k]])+' ':'')+'<span class="rk">&#10003; Correct: '+esc(q.o[q.a[k]])+'</span></div></div>';}).join('')+'</div>';
   }
   if(q.type==="text"){
-    var ok=a.trim()===q.a;
+    var ok=textOk(a,q.a);
     return '<div class="opt ro'+(ok?' right':(a.trim()?' wrong':''))+'">Answer:<input class="txt" type="text" disabled value="'+esc(a)+'"></div>'+
       '<div class="ro right"><span class="rk">&#10003;</span>Correct answer: '+esc(q.a)+'</div>';
   }
   if(q.type==="drop"){
+    var dd=(a&&a.length===q.lab.length)?a:q.lab.map(function(){return -1;});
     return '<div class="eq">'+q.lab.map(function(l,s2){
-      return '<span class="slot gok">'+esc(q.o[q.a[s2]])+'</span><span>'+l+'</span>';}).join("")+'</div>';
+      var bad=dd[s2]>-1&&q.o[dd[s2]]!==q.o[q.a[s2]];
+      return (bad?'<span class="slot" style="background:#fde0e0;border-color:#c62828;color:#7a1414;text-decoration:line-through">'+esc(q.o[dd[s2]])+'</span> ':'')+'<span class="slot gok">'+esc(q.o[q.a[s2]])+'</span><span>'+l+'</span>';}).join("")+'</div>';
   }
   var isR=q.type==="radio";
   h=q.o.map(function(o,k){
@@ -664,11 +670,12 @@ function renderReview(idx){
   var rows=[["Started on",dt(h.started)],["State","Finished"],["Completed on",dt(h.completed)],
     ["Time taken",Math.floor(h.secs/60)+" mins "+(h.secs%60)+" secs"],
     ["Marks",sc.toFixed(2)+"/"+n.toFixed(2)],["Grade",(sc/n*G).toFixed(2)+" out of "+G.toFixed(2)+" ("+Math.round(sc/n*100)+"%)"]];
+  if(lks(S.k))rows=rows.slice(0,4);
   var qs=Q.map(function(q,i){
     var ok=correct(i);
     return '<div class="rq"><div class="rinfo"><div class="rn">Question <b>'+(i+1)+'</b></div>'+
       '<div class="rs">'+(ok?"Correct":(answered(i)?"Incorrect":"Not answered"))+'</div>'+
-      '<div class="rm">Mark '+(ok?(q.w||1):0).toFixed(2)+' out of '+(q.w||1).toFixed(2)+'</div></div>'+
+      (lks(S.k)?'':'<div class="rm">Mark '+(ok?(q.w||1):0).toFixed(2)+' out of '+(q.w||1).toFixed(2)+'</div>')+'</div>'+
       '<div class="rbody"><p>'+esc(q.t)+'</p>'+(q.fig||"")+revBody(q,i)+'</div></div>';
   }).join("");
   root.innerHTML=
