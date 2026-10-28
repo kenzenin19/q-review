@@ -20,16 +20,16 @@ input{margin-bottom:10px}button{border:0;cursor:pointer;font-weight:600}#go{back
  <input id="pw" type="password" placeholder="Password (min 6 characters)" autocomplete="current-password">
  <button id="go" type="button">Sign in</button>
  <div id="m" role="status"></div>
- <a href="admin.html">Admin</a>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script>
 var $=function(i){return document.getElementById(i)},sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY),up=false;
+function route(){sb.rpc("is_admin").then(function(a){location.replace(a.data?"admin.html":"index.html")},function(){location.replace("index.html")})}
 function say(t,bad){var m=$("m");m.textContent=t;m.style.color=bad?"var(--bad)":"var(--ok)"}
 function mode(u){up=u;$("t1").className=u?"":"on";$("t2").className=u?"on":"";$("name").classList.toggle("hidden",!u);$("go").textContent=u?"Create account":"Sign in";$("pw").autocomplete=u?"new-password":"current-password";say("")}
 $("t1").onclick=function(){mode(false)};$("t2").onclick=function(){mode(true)};
-sb.auth.getSession().then(function(r){if(r.data.session)location.replace("index.html")});
+sb.auth.getSession().then(function(r){if(r.data.session)route()});
 $("go").onclick=function(){
   var em=$("em").value.trim(),pw=$("pw").value,nm=$("name").value.trim();
   if(!em||pw.length<6){say("Enter your email and a password of at least 6 characters.",1);return}
@@ -39,7 +39,7 @@ $("go").onclick=function(){
   p.then(function(r){
     $("go").disabled=false;
     if(r.error){say(r.error.message,1);return}
-    if(r.data.session)location.replace("index.html");
+    if(r.data.session)route();
     else say("Account created. Check your email to confirm it, then sign in.");
   });
 };

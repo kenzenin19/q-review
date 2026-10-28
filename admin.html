@@ -29,7 +29,7 @@ details.g>summary{cursor:pointer;padding:12px 16px;font-weight:600;font-size:15p
 .bar{height:10px;background:var(--soft);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}.warn{color:var(--bad);font-weight:600}tr[data-k]{cursor:pointer}tr[data-k]:hover{background:#8881}.hidden{display:none}.help{font-size:12px;color:var(--mut)}
 dialog{border:0;border-radius:14px;padding:18px;background:var(--card);color:var(--fg);max-width:440px;width:92%}dialog::backdrop{background:#0006}
 </style></head><body>
-<div class="top"><b>Quiz Admin</b><span class="sp"></span><span id="who" class="help"></span><button class="s hidden" id="out">Sign out</button></div>
+<div class="top"><b>Quiz Admin</b><span class="sp"></span><a href="index.html" class="help">Student view</a><span id="who" class="help"></span><button class="s hidden" id="out">Sign out</button></div>
 <main>
 <div id="msg"></div>
 <div class="card" id="login"><h2>Sign in</h2>
@@ -103,7 +103,7 @@ function qBySlug(s){return QZ.filter(function(q){return q.slug===s})[0]}
 function subOpts(sel,all){return (all?"<option value=''>All subjects</option>":"")+SUB.map(function(s){return"<option value='"+s.id+"'>"+esc(s.name)+"</option>"}).join("")+(all?"":"<option value=''>No subject</option>")}
 
 $("go").onclick=function(){sb.auth.signInWithPassword({email:$("em").value,password:$("pw").value}).then(function(r){if(r.error)msg(r.error.message,1);else boot()})};
-$("out").onclick=function(){sb.auth.signOut().then(function(){location.reload()})};
+$("out").onclick=function(){sb.auth.signOut().then(function(){location.replace("login.html")})};
 function boot(){sb.auth.getSession().then(function(r){
   if(!r.data.session)return;
   sb.rpc("is_admin").then(function(a){

@@ -700,6 +700,7 @@ function addBar(){
   var b=document.createElement("button");b.textContent="Sign out";b.style.cssText="background:#e6dff0;color:#6b4a8a;border-radius:10px;padding:3px 10px;font-size:12px";
   b.onclick=function(){sb.auth.signOut().then(function(){location.replace("login.html");});};
   d.appendChild(n);d.appendChild(b);document.body.appendChild(d);
+  sb.rpc("is_admin").then(function(r){if(r.data){var a=document.createElement("a");a.href="admin.html";a.textContent="Admin";a.style.cssText="color:#6b4a8a;font-weight:600;text-decoration:none";d.insertBefore(a,b);}});
 }
 function loadDB(){
   if(!window.supabase||!window.SUPABASE_URL||/YOUR_/.test(window.SUPABASE_URL))return Promise.resolve();
