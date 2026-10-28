@@ -41,8 +41,8 @@ if(/[?&]out=1/.test(location.search))clearAuth();
 var $=function(i){return document.getElementById(i)},sb=mkClient(),up=false;
 function route(){bindDevice().then(function(b){
   if(b==="mismatch"){hardSignOut().then(refused);return}
-  sb.rpc("my_decoy").then(function(d){
-    if(d&&d.data===true){location.replace("decoy.html");return}
+  sb.rpc("my_view").then(function(d){
+    if(d&&d.data===true){location.replace("courses.html");return}
     sb.rpc("is_admin").then(function(a){location.replace(a.data?"admin.html":"index.html")},function(){location.replace("index.html")})
   },function(){location.replace("index.html")})})}
 function say(t,bad){var m=$("m");m.textContent=t;m.style.color=bad?"var(--bad)":"var(--ok)"}

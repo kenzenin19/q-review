@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My courses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Real size: 24px root at 100% zoom (panel 1422px, centered). Smaller windows scale it down proportionally. */
+html{font-size:17px}
+@media(min-width:900px){html{font-size:clamp(11px,calc(100vw / 1500 * 24),24px)}}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:Montserrat,"Segoe UI",system-ui,sans-serif;color:#222436;background:#edf0f8;min-height:100vh;
+  background-image:linear-gradient(#cfdcec,#cfdcec);background-repeat:no-repeat;background-size:100% 6.375rem;background-position:0 .35rem}
+body::before{content:"";display:block;height:.35rem;background:#fff;border-bottom:1px solid #dfe3ea;position:absolute;top:0;left:0;right:0}
+.bar{position:absolute;top:.75rem;left:.75rem;z-index:5;display:flex;align-items:center;gap:.4rem;background:#fff;border-radius:1rem;padding:.15rem .15rem .15rem .75rem;box-shadow:0 1px 4px #0002;font-size:.79rem;color:#222436;max-width:calc(100% - 1.5rem)}
+.bar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar button{font:inherit;border:0;border-radius:.85rem;background:#e6dff0;color:#7a5a9a;padding:.2rem .6rem;cursor:pointer}
+.wrap{padding:3.4rem .6rem 2rem}
+.panel{background:#fff;border-radius:.92rem;padding:1.4rem 1.1rem 1.4rem;box-shadow:0 1px 3px #0001}
+@media(min-width:900px){.wrap{padding:2.875rem 0 2rem}.panel{width:59.25rem;margin:0 auto;padding:2.083rem 1.75rem 1.79rem}}
+h1{font-size:1.833rem;font-weight:500;line-height:1.2;margin:0 0 1.167rem;color:#1c1e2b}
+.grid{display:grid;grid-template-columns:1fr;gap:.875rem}
+@media(min-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
+.course{border:1px solid #e4e7ee;border-left:.333rem solid #9b30c9;border-radius:.58rem;padding:1.125rem 1rem 1rem 1.083rem;min-height:9.96rem;cursor:pointer;background:#fff}
+.course:hover{box-shadow:0 .15rem .6rem #0001}
+.code{font-size:.79rem;font-weight:700;letter-spacing:.08em;line-height:1.3;color:#6e3d8f;text-transform:uppercase;margin-bottom:.458rem}
+.course h2{font-size:1.208rem;font-weight:500;line-height:1.38;color:#1d2a5b;margin:0 0 .417rem}
+.course p{margin:0;font-size:.833rem;line-height:1.45;color:#7d8190}
+.crumb{font-size:.6rem;color:#7d8190;margin-bottom:.6rem}.crumb a{color:#5b3b86;cursor:pointer;text-decoration:none}.crumb a:hover{text-decoration:underline}
+.sec{border:1px solid #e4e7ee;border-left:.25rem solid #9b30c9;border-radius:.5rem;padding:.7rem .9rem;margin-bottom:.55rem;cursor:pointer;display:flex;justify-content:space-between;gap:.6rem;align-items:center;font-size:.8rem}
+.sec:hover{box-shadow:0 .1rem .4rem #0001}.sec b{color:#1d2a5b;font-weight:600}.sec small{color:#7d8190;display:block;font-weight:400;font-size:.68rem}
+.tag{font-size:.5rem;background:#efe6f6;color:#6e3d8f;border-radius:.5rem;padding:.1rem .5rem;font-weight:600;white-space:nowrap}
+.doc{max-width:40rem;line-height:1.7}.doc h1{font-size:1.4rem}.doc h3{color:#1d2a5b;margin:1.2rem 0 .35rem;font-size:.92rem;font-weight:600}
+.doc p,.doc li{color:#2d3040;font-size:max(.8rem,15px)}.doc ul{padding-left:1.1rem}
+.box{background:#f5f0fa;border-left:.17rem solid #9b30c9;border-radius:.35rem;padding:.55rem .75rem;margin:.6rem 0;font-size:max(.75rem,14px)}
+.f{font-family:Cambria,"Times New Roman",serif;font-size:max(.85rem,16px);background:#f7f8fb;border:1px solid #e4e7ee;border-radius:.35rem;padding:.4rem .7rem;margin:.5rem 0;overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:max(.68rem,13px);margin:.5rem 0}th,td{border:1px solid #e4e7ee;padding:.3rem .45rem;text-align:left}th{background:#f3eef8;color:#1d2a5b}
+.nav{display:flex;justify-content:space-between;margin-top:1.4rem;gap:.5rem}
+.nav button{font:inherit;font-size:max(.7rem,14px);font-weight:600;border:0;border-radius:.4rem;padding:.45rem .8rem;background:#efe6f6;color:#6e3d8f;cursor:pointer}
+</style></head><body>
+<div class="bar"><span id="who"></span><button id="so" type="button">Sign out</button></div>
+<div class="wrap"><div class="panel" id="root"></div></div>
+
+<script>
+var C=[
+{code:"DS2 26-1",title:"DS2_26-1",desc:"Discrete Probability Part 2",items:[
+ {t:"Reviewer 1: Conditional Probability and Independence",s:"Definitions, multiplication rule, independent events",h:
+ '<h3>Conditional probability</h3><p>The probability of A given that B has occurred (with P(B) &gt; 0):</p><div class="f">P(A | B) = P(A ∩ B) / P(B)</div><p>Rearranged, this gives the <b>multiplication rule</b>: P(A ∩ B) = P(B) · P(A | B).</p>'+
+ '<h3>Independent events</h3><p>A and B are independent when knowing one does not change the other:</p><div class="f">P(A ∩ B) = P(A) · P(B) &nbsp;⇔&nbsp; P(A | B) = P(A)</div><div class="box"><b>Do not confuse</b> independent with mutually exclusive. Mutually exclusive events with positive probability are never independent, because P(A ∩ B) = 0.</div>'+
+ '<h3>Example</h3><p>Two cards are drawn without replacement from a standard deck. P(both aces) = (4/52)(3/51) = 1/221.</p>'},
+ {t:"Reviewer 2: Bayes’ Theorem",s:"Total probability, Bayes’ rule, worked example",h:
+ '<h3>Law of total probability</h3><p>If A₁, …, Aₙ partition the sample space:</p><div class="f">P(B) = Σ P(B | Aᵢ) · P(Aᵢ)</div><h3>Bayes’ theorem</h3><div class="f">P(Aⱼ | B) = P(B | Aⱼ) · P(Aⱼ) / Σ P(B | Aᵢ) · P(Aᵢ)</div>'+
+ '<h3>Worked example</h3><p>A test detects a disease 95% of the time when present, and gives a false positive 4% of the time. 1% of people have the disease. Given a positive test:</p><div class="f">P(D | +) = (0.95)(0.01) / [(0.95)(0.01) + (0.04)(0.99)] ≈ 0.193</div><p>Even with a positive result, the chance of having the disease is only about 19%, because the disease is rare.</p>'},
+ {t:"Reviewer 3: Random Variables, Expectation and Variance",s:"E(X), linearity, V(X), Bernoulli, binomial, geometric",h:
+ '<h3>Expected value</h3><div class="f">E(X) = Σ x · p(x)</div><p><b>Linearity:</b> E(X + Y) = E(X) + E(Y), always, even if X and Y are dependent. Also E(aX + b) = aE(X) + b.</p>'+
+ '<h3>Variance</h3><div class="f">V(X) = E(X²) − [E(X)]²</div><p>If X and Y are independent, V(X + Y) = V(X) + V(Y). Also V(aX + b) = a²V(X).</p>'+
+ '<h3>Common distributions</h3><table><tr><th>Distribution</th><th>P(X = k)</th><th>E(X)</th><th>V(X)</th></tr><tr><td>Bernoulli(p)</td><td>p if k = 1; 1 − p if k = 0</td><td>p</td><td>p(1 − p)</td></tr><tr><td>Binomial(n, p)</td><td>C(n,k) pᵏ (1 − p)ⁿ⁻ᵏ</td><td>np</td><td>np(1 − p)</td></tr><tr><td>Geometric(p)</td><td>(1 − p)ᵏ⁻¹ p</td><td>1/p</td><td>(1 − p)/p²</td></tr></table>'+
+ '<div class="box"><b>Example:</b> A fair coin is flipped 10 times. P(exactly 4 heads) = C(10,4)(1/2)¹⁰ = 210/1024 ≈ 0.205.</div>'}
+]},
+{code:"CSAM 211",title:"Ordinary Differential Equations 26-1",desc:"Second and Higher Order Linear Homogeneous DE",items:[
+ {t:"Reviewer 1: Constant-Coefficient Homogeneous Equations",s:"Characteristic equation and the three root cases",h:
+ '<h3>Setup</h3><p>For <b>a y″ + b y′ + c y = 0</b>, try y = e<sup>mx</sup>. This gives the characteristic equation:</p><div class="f">a m² + b m + c = 0</div>'+
+ '<h3>Case 1: distinct real roots m₁, m₂</h3><div class="f">y = C₁ e<sup>m₁x</sup> + C₂ e<sup>m₂x</sup></div><h3>Case 2: repeated real root m</h3><div class="f">y = (C₁ + C₂ x) e<sup>mx</sup></div><h3>Case 3: complex roots α ± βi</h3><div class="f">y = e<sup>αx</sup> (C₁ cos βx + C₂ sin βx)</div>'+
+ '<h3>Examples</h3><ul><li>y″ − 5y′ + 6y = 0 → m = 2, 3 → y = C₁e²ˣ + C₂e³ˣ</li><li>y″ + 4y′ + 4y = 0 → m = −2 (twice) → y = (C₁ + C₂x)e⁻²ˣ</li><li>y″ + 2y′ + 5y = 0 → m = −1 ± 2i → y = e⁻ˣ(C₁ cos 2x + C₂ sin 2x)</li></ul>'},
+ {t:"Reviewer 2: Higher-Order Equations",s:"Repeated and complex roots of higher multiplicity",h:
+ '<h3>Method</h3><p>For an nth-order equation, the characteristic equation is a polynomial of degree n. Factor it, then build the general solution from every root.</p>'+
+ '<ul><li>A real root m of multiplicity k contributes: e<sup>mx</sup>, x e<sup>mx</sup>, …, x<sup>k−1</sup> e<sup>mx</sup>.</li><li>A complex pair α ± βi of multiplicity k contributes e<sup>αx</sup> cos βx, e<sup>αx</sup> sin βx, each multiplied by 1, x, …, x<sup>k−1</sup>.</li></ul>'+
+ '<h3>Examples</h3><ul><li>y‴ − 6y″ + 11y′ − 6y = 0 → (m − 1)(m − 2)(m − 3) = 0 → y = C₁eˣ + C₂e²ˣ + C₃e³ˣ</li><li>y⁗ − 2y″ + y = 0 → (m² − 1)² = 0 → m = 1, 1, −1, −1 → y = (C₁ + C₂x)eˣ + (C₃ + C₄x)e⁻ˣ</li></ul>'},
+ {t:"Reviewer 3: Linear Independence, Wronskian and IVPs",s:"Checking solution sets, initial conditions",h:
+ '<h3>Wronskian</h3><p>For two solutions y₁, y₂ of a second-order equation:</p><div class="f">W(y₁, y₂) = y₁ y₂′ − y₂ y₁′</div><p>If W ≠ 0 on an interval, the solutions are linearly independent and form a fundamental set.</p>'+
+ '<h3>Initial value problems</h3><p>Find the general solution first, then use the initial conditions to solve for the constants. An nth-order equation needs n conditions.</p><div class="box"><b>Example:</b> y″ − 3y′ + 2y = 0, y(0) = 1, y′(0) = 0. Roots m = 1, 2, so y = C₁eˣ + C₂e²ˣ. Then C₁ + C₂ = 1 and C₁ + 2C₂ = 0, giving C₂ = −1 and C₁ = 2. So y = 2eˣ − e²ˣ.</div>'}
+]},
+{code:"CCCS 104",title:"Data Structures and Algorithms 26-1",desc:"Graphs, Searching, Sorting and Hashing",items:[
+ {t:"Reviewer 1: Graphs",s:"Representations, BFS, DFS, shortest paths",h:
+ '<h3>Representations</h3><table><tr><th></th><th>Adjacency matrix</th><th>Adjacency list</th></tr><tr><td>Space</td><td>O(V²)</td><td>O(V + E)</td></tr><tr><td>Edge check</td><td>O(1)</td><td>O(degree)</td></tr><tr><td>Best for</td><td>Dense graphs</td><td>Sparse graphs</td></tr></table>'+
+ '<h3>Traversals</h3><ul><li><b>BFS</b> uses a queue, visits level by level, and finds shortest paths in unweighted graphs. O(V + E).</li><li><b>DFS</b> uses a stack or recursion, goes deep before backtracking. O(V + E). Used for cycle detection and topological sort.</li></ul>'+
+ '<h3>Shortest paths</h3><p><b>Dijkstra’s algorithm</b> works for non-negative weights; with a min-heap it runs in O((V + E) log V).</p>'},
+ {t:"Reviewer 2: Searching and Sorting",s:"Linear and binary search, complexity table",h:
+ '<h3>Searching</h3><ul><li><b>Linear search:</b> O(n), works on any list.</li><li><b>Binary search:</b> O(log n), requires a sorted array. Compare with the middle element, then discard half.</li></ul>'+
+ '<h3>Sorting</h3><table><tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Stable</th></tr><tr><td>Bubble</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>Yes</td></tr><tr><td>Selection</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td>No</td></tr><tr><td>Insertion</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>Yes</td></tr><tr><td>Merge</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>Yes</td></tr><tr><td>Quick</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n²)</td><td>No</td></tr><tr><td>Heap</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>No</td></tr></table>'},
+ {t:"Reviewer 3: Hashing",s:"Hash functions, load factor, collision handling",h:
+ '<h3>Basics</h3><p>A hash function maps a key to a table index, for example h(k) = k mod m. Average search, insert and delete are O(1).</p><div class="f">load factor α = n / m</div>'+
+ '<h3>Collision handling</h3><ul><li><b>Separate chaining:</b> each slot holds a linked list of keys. Average lookup is O(1 + α).</li><li><b>Open addressing:</b> probe for another slot. <i>Linear probing</i> tries h(k)+1, +2, …; <i>quadratic probing</i> tries h(k)+i²; <i>double hashing</i> uses a second hash function for the step size.</li></ul>'+
+ '<div class="box"><b>Example:</b> Insert 12, 22, 32 into a table of size 10 with h(k) = k mod 10 and linear probing. All hash to 2, so they land in slots 2, 3 and 4.</div>'}
+]}];
+
+var root=document.getElementById("root");
+function home(){
+  root.innerHTML='<h1>My courses</h1><div class="grid">'+C.map(function(c,i){return'<div class="course" data-c="'+i+'"><div class="code">'+c.code+'</div><h2>'+c.title+'</h2><p>'+c.desc+'</p></div>'}).join("")+'</div>';
+  scrollTo(0,0);
+}
+function course(i){
+  var c=C[i];
+  root.innerHTML='<div class="crumb"><a data-go="home">My courses</a> / '+c.code+'</div><h1>'+c.title+'</h1>'+c.items.map(function(x,j){return'<div class="sec" data-c="'+i+'" data-r="'+j+'"><div><b>'+x.t+'</b><small>'+x.s+'</small></div><span class="tag">Reviewer</span></div>'}).join("");
+  scrollTo(0,0);
+}
+function reviewer(i,j){
+  var c=C[i],x=c.items[j];
+  root.innerHTML='<div class="crumb"><a data-go="home">My courses</a> / <a data-c="'+i+'" data-go="course">'+c.code+'</a> / Reviewer</div><div class="doc"><h1>'+x.t+'</h1>'+x.h+
+   '<div class="nav"><button '+(j?'data-c="'+i+'" data-r="'+(j-1)+'"':'disabled style="opacity:.4"')+'>← Previous</button><button '+(j<c.items.length-1?'data-c="'+i+'" data-r="'+(j+1)+'"':'disabled style="opacity:.4"')+'>Next →</button></div></div>';
+  scrollTo(0,0);
+}
+root.onclick=function(e){
+  var g=e.target.closest("[data-go]");
+  if(g){if(g.dataset.go==="home")home();else course(+g.dataset.c);return}
+  var n=e.target.closest("[data-c]");if(!n||n.disabled)return;
+  if(n.dataset.r!==undefined)reviewer(+n.dataset.c,+n.dataset.r);else course(+n.dataset.c);
+};
+home();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+/* Keeps the session. When an admin switches this account back to the normal view, the student is sent back automatically. */
+(function(){
+  var DEV;try{DEV=localStorage.getItem("qr_device")||""}catch(e){DEV=""}
+  var sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{global:{headers:{"x-device-id":DEV}}});
+  function check(){
+    sb.auth.getSession().then(function(r){
+      if(!r.data.session){location.replace("login.html");return}
+      var u=r.data.session.user;document.getElementById("who").textContent=(u.user_metadata&&u.user_metadata.full_name)||u.email||"";
+      sb.rpc("my_view").then(function(x){if(x&&x.data===false)location.replace("index.html")},function(){});
+    });
+  }
+  document.getElementById("so").onclick=function(){
+    var go=function(){try{Object.keys(localStorage).forEach(function(k){if(/^sb-.*-auth-token/.test(k))localStorage.removeItem(k)})}catch(e){}location.replace("login.html?out=1")};
+    sb.auth.signOut({scope:"local"}).then(go,go);
+  };
+  check();setInterval(check,10000);
+})();
+</script>
+</body></html>
