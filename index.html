@@ -338,6 +338,7 @@ var LOCK_ICO='<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"
 var LK={},SUBS=[],COURSE_RX={ds2:/^DS2/i,csam:/Ordinary/i,dsa:/Data Structures/i};
 function lkq(k){return !!(LK[k]&&LK[k].q);}
 function lka(k){return !!(LK[k]&&(LK[k].q||LK[k].att));}
+function lkv(k){return !!(LK[k]&&(LK[k].q||LK[k].ans));}
 function lks(k){return !!(LK[k]&&(LK[k].q||LK[k].sc));}
 function courseLocked(c){if(c.locked)return true;var rx=COURSE_RX[c.id];return !!rx&&SUBS.some(function(s){return s.locked&&rx.test(s.name);});}
 function stateHTML(it){
@@ -556,7 +557,7 @@ function right(i){var q=Q[i];if(q.type==="match")return q.a.map(function(x){retu
 function dt(d){return d.toLocaleString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"}).replace(" at ",", ");}
 function renderInfo(){
   var k=S.k,list=H[k];
-  var LA=lka(k),LS=lks(k);
+  var LA=lka(k),LS=lkv(k),LSC=lks(k);
   var btn=LA?LOCK_ICO+"Attempts locked":(A[k]&&!A[k].finished)?"Continue your attempt":(list.length?"Re-attempt quiz":"Attempt quiz");
   var atts=list.map(function(h,n){
     return '<div class="attempt"><h3>Attempt '+(n+1)+'</h3><div class="chips">'+
@@ -569,7 +570,7 @@ function renderInfo(){
   root.innerHTML=
   '<button class="btn back" id="back" type="button">Back to course</button>'+
   '<div class="card info"><button class="reattempt'+(LA?' lockedb':'')+'" id="re" type="button" style="margin-bottom:12px;display:block">'+btn+'</button>'+
-  '<button class="reattempt viewans'+(LS?' lockedb':'')+'" id="va" type="button">'+(LS?LOCK_ICO:'')+'View answers</button>'+(LA||LS?'<div class="lknote">'+LOCK_ICO+'<span>'+(LA&&LS?'Attempts, scores and answers are locked for this quiz.':LA?'Attempts are locked for this quiz.':'Scores and answers are locked for this quiz.')+'</span></div>':'')+
+  '<button class="reattempt viewans'+(LS?' lockedb':'')+'" id="va" type="button">'+(LS?LOCK_ICO:'')+'View answers</button>'+(LA||LS||LSC?'<div class="lknote">'+LOCK_ICO+'<span>'+[LA?'attempts':'',LSC?'scores':'',LS?'answers':''].filter(Boolean).join(', ').replace(/, ([^,]*)$/,' and $1').replace(/^./,function(c){return c.toUpperCase();})+((LA?1:0)+(LSC?1:0)+(LS?1:0)>1?' are':' is')+' locked for this quiz.</span></div>':'')+
   '<p>Time limit: '+mt(k).limit+'</p><p>Grading method: '+mt(k).method+'</p><p>Grade to pass: '+mt(k).pass+'</p>'+
   (list.length?'<h2 class="yat">Your attempts</h2>'+atts:'')+'</div>';
   $("back").onclick=function(){S.view="course";renderCourse();window.scrollTo(0,0);};
@@ -588,8 +589,8 @@ function renderInfo(){
     ov.onclick=function(e){if(e.target===ov)ov.remove();};
     $("atyes").onclick=function(){ov.remove();if(A[k]&&A[k].finished)A[k]=null;beginQuiz(k);};
   };
-  $("va").onclick=function(){if(LS){toast("Scores and answers are locked for this quiz");return;}logEvent("view_answers");S.view="answers";renderAnswers();window.scrollTo(0,0);};
-  root.querySelectorAll("[data-rv]").forEach(function(a){a.onclick=function(e){e.preventDefault();if(LS){toast("Scores and answers are locked for this quiz");return;}logEvent("view_review");S.view="review";renderReview(+a.dataset.rv);window.scrollTo(0,0);};});
+  $("va").onclick=function(){if(LS){toast("Answers are locked for this quiz");return;}logEvent("view_answers");S.view="answers";renderAnswers();window.scrollTo(0,0);};
+  root.querySelectorAll("[data-rv]").forEach(function(a){a.onclick=function(e){e.preventDefault();if(LS){toast("Answers are locked for this quiz");return;}logEvent("view_review");S.view="review";renderReview(+a.dataset.rv);window.scrollTo(0,0);};});
 }
 function ordNote(){return '<div class="ordnote"><b>Note:</b> The order of the questions and answer choices in your actual quiz may be different from what you see here. Always check the <b>actual answer text</b>, not the letter (a, b, c&hellip;).</div>';}
 function searchBox(){return '<div class="srch"><input id="qs" type="search" placeholder="Search question..." aria-label="Search questions" autocomplete="off"><span id="qc" class="qc"></span></div><p id="qn" class="qn" style="display:none">No matching questions.</p>';}
@@ -680,14 +681,14 @@ function renderReview(idx){
   bindSearch();
 }
 function renderResult(){
-  var used=TOTAL-S.left,LS=lks(S.k);
+  var used=TOTAL-S.left,LS=lkv(S.k),LSC=lks(S.k);
   root.innerHTML=
   '<button class="btn back" id="back" type="button">Back to course</button>'+
   '<div class="card"><h2 class="qt">Attempt finished</h2>'+
   (S.timeUp?'<p>Time is up. Your attempt was submitted automatically.</p>':'')+
   '<div class="meta"><span>'+TITLES[S.k]+'</span><span>Time taken: '+Math.floor(used/60)+' min '+(used%60)+' secs</span></div>'+
-  (LS?'<p class="score"><span class="sblur">0 / 0</span> '+LOCK_ICO+'</p><div class="lknote">'+LOCK_ICO+'<span>Your score and answers are locked.</span></div>':'<p class="score">'+S.score+' / '+tot(Q)+' <span style="font-size:18px;color:var(--muted)">('+Math.round(S.score/tot(Q)*100)+'%)</span></p>')+
-  (LS?'<div hidden>':'')+'<div class="rev">'+Q.map(function(q,i){var ok=correct(i);
+  (LSC?'<p class="score"><span class="sblur">0 / 0</span> '+LOCK_ICO+'</p><div class="lknote">'+LOCK_ICO+'<span>Your score is locked.</span></div>':'<p class="score">'+S.score+' / '+tot(Q)+' <span style="font-size:18px;color:var(--muted)">('+Math.round(S.score/tot(Q)*100)+'%)</span></p>')+
+  (LS?'<div class="lknote">'+LOCK_ICO+'<span>Answers are locked for this quiz.</span></div><div hidden>':'')+'<div class="rev">'+Q.map(function(q,i){var ok=correct(i);
     return '<div class="it '+(ok?"ok":"no")+'"><span class="tag">Question '+(i+1)+' &middot; '+(ok?"Correct":"Incorrect")+'</span>'+
     '<p>'+esc(q.t)+'</p><p><b>Your answer:</b> '+esc(show(i))+'</p>'+(ok?"":'<p><b>Correct answer:</b> '+esc(right(i))+'</p>')+'</div>';}).join("")+'</div>'+(LS?'</div>':'')+
   '<div class="nav"><button class="btn ghost" id="retake" type="button">Retake quiz</button><button class="btn primary" id="course" type="button">Return to course</button></div></div>';
@@ -742,14 +743,14 @@ function addBar(){
 function loadDB(){
   if(!window.supabase||!window.SUPABASE_URL||/YOUR_/.test(window.SUPABASE_URL))return Promise.resolve();
   sb=sb||mkClient();
-  return Promise.all([sb.from("quizzes").select("slug,title,meta,subject_id,locked,lock_attempts,lock_scores,questions(position,type,text,options,answer,weight,extra)").eq("published",true),sb.from("subjects").select("id,name,locked,lock_attempts,lock_scores")]).then(function(rr){
+  return Promise.all([sb.from("quizzes").select("slug,title,meta,subject_id,locked,lock_attempts,lock_scores,lock_answers,questions(position,type,text,options,answer,weight,extra)").eq("published",true),sb.from("subjects").select("id,name,locked,lock_attempts,lock_scores,lock_answers")]).then(function(rr){
     var r=rr[0];SUBS=(rr[1]&&rr[1].data)||[];
     if(r.error||!r.data)return;
     var known={};Object.keys(SECS).forEach(function(c){SECS[c].forEach(function(sec){sec.items.forEach(function(it){if(it.quiz)known[it.quiz]=1;});});});
     var extra=[];
     r.data.forEach(function(z){
       var sj=SUBS.filter(function(x){return x.id===z.subject_id;})[0];
-      LK[z.slug]={q:!!(z.locked||(sj&&sj.locked)),att:!!(z.lock_attempts||(sj&&sj.lock_attempts)),sc:!!(z.lock_scores||(sj&&sj.lock_scores))};
+      LK[z.slug]={q:!!(z.locked||(sj&&sj.locked)),att:!!(z.lock_attempts||(sj&&sj.lock_attempts)),sc:!!(z.lock_scores||(sj&&sj.lock_scores)),ans:!!(z.lock_answers||(sj&&sj.lock_answers))};
       if(LK[z.slug].q&&QS[z.slug]){TITLES[z.slug]=TITLES[z.slug]||z.title;if(!H[z.slug])H[z.slug]=[];return;}
       QS[z.slug]=z.questions.sort(function(a,b){return a.position-b.position;}).map(function(x){
         var q={t:x.text,type:x.type,a:x.answer};
