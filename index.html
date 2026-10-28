@@ -840,17 +840,21 @@ QS.dsa_q2=[
 META.dsa_q2={limit:"30 mins",secs:1800,method:"Highest grade",pass:"Not specified",grade:10};
 /* ---------------- Supabase: quizzes + attempts ---------------- */
 var sb=null;
+var ME=null;
 function saveAttemptDB(){
-  if(!sb)return;
-  try{
-    var n=localStorage.getItem("studentName");
-    if(!n){n=(prompt("Enter your name to record your score:")||"").trim();if(n)localStorage.setItem("studentName",n);}
-    sb.from("attempts").insert({quiz_slug:S.k,student_name:n||null,score:S.score,total:tot(Q),secs:TOTAL-S.left,answers:S.ans}).then(function(){},function(){});
-  }catch(e){}
+  if(!sb||!ME)return;
+  sb.from("attempts").insert({user_id:ME.id,quiz_slug:S.k,student_name:(ME.user_metadata&&ME.user_metadata.full_name)||ME.email,score:S.score,total:tot(Q),secs:TOTAL-S.left,answers:S.ans}).then(function(){},function(){});
+}
+function addBar(){
+  var d=document.createElement("div");d.style.cssText="position:fixed;top:6px;left:12px;z-index:20;font-size:12px;background:#fff;color:#222436;border-radius:14px;padding:3px 4px 3px 12px;box-shadow:0 1px 4px #0003;display:flex;gap:8px;align-items:center";
+  var n=document.createElement("span");n.textContent=(ME.user_metadata&&ME.user_metadata.full_name)||ME.email;
+  var b=document.createElement("button");b.textContent="Sign out";b.style.cssText="background:#e6dff0;color:#6b4a8a;border-radius:10px;padding:3px 10px;font-size:12px";
+  b.onclick=function(){sb.auth.signOut().then(function(){location.replace("login.html");});};
+  d.appendChild(n);d.appendChild(b);document.body.appendChild(d);
 }
 function loadDB(){
   if(!window.supabase||!window.SUPABASE_URL||/YOUR_/.test(window.SUPABASE_URL))return Promise.resolve();
-  sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  sb=sb||supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
   return sb.from("quizzes").select("slug,title,meta,questions(position,type,text,options,answer,weight,extra)").eq("published",true).then(function(r){
     if(r.error||!r.data)return;
     var known={};Object.keys(SECS).forEach(function(c){SECS[c].forEach(function(sec){sec.items.forEach(function(it){if(it.quiz)known[it.quiz]=1;});});});
@@ -870,7 +874,14 @@ function loadDB(){
     if(extra.length){SECTIONS.push({id:"extra",title:"More quizzes",items:extra});S.open.extra=true;}
   }).catch(function(){});
 }
-loadDB().then(function(){renderHome();});
+(function(){
+  if(!window.supabase||!window.SUPABASE_URL||/YOUR_/.test(window.SUPABASE_URL)){renderHome();return;}
+  sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  sb.auth.getSession().then(function(r){
+    if(!r.data.session){location.replace("login.html");return;}
+    ME=r.data.session.user;addBar();loadDB().then(function(){renderHome();});
+  });
+})();
 </script>
 </body>
 </html>

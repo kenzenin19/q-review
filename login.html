@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in</title>
+<style>
+:root{--bg:#eef1f7;--fg:#222436;--card:#fff;--acc:#9b30c9;--soft:#e6dff0;--ink:#6b4a8a;--line:#d5d9e6;--bad:#c62828;--ok:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#171923;--fg:#e8e9f2;--card:#22253a;--soft:#363a55;--ink:#d9c6ee;--line:#363a55}}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:16px;font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+.card{width:100%;max-width:380px;background:var(--card);border-radius:14px;padding:28px;box-shadow:0 2px 10px #0002}
+h1{font-size:22px;margin:0 0 4px}p.sub{margin:0 0 18px;color:#7b7f92;font-size:13px}
+.tabs{display:flex;gap:6px;margin-bottom:16px}.tabs button{flex:1;background:var(--soft);color:var(--ink)}.tabs button.on{background:var(--acc);color:#fff}
+input,button{font:inherit;border-radius:8px;border:1px solid var(--line);padding:10px 12px;width:100%;background:transparent;color:inherit}
+input{margin-bottom:10px}button{border:0;cursor:pointer;font-weight:600}#go{background:var(--acc);color:#fff;margin-top:4px}
+#m{min-height:20px;font-size:13px;margin-top:10px}.hidden{display:none}a{color:var(--ink);font-size:12px}
+</style></head><body>
+<div class="card">
+ <h1>Course Quizzes</h1><p class="sub">Sign in to take your quizzes</p>
+ <div class="tabs"><button id="t1" class="on" type="button">Sign in</button><button id="t2" type="button">Create account</button></div>
+ <input id="name" class="hidden" placeholder="Full name" autocomplete="name">
+ <input id="em" type="email" placeholder="Email" autocomplete="username">
+ <input id="pw" type="password" placeholder="Password (min 6 characters)" autocomplete="current-password">
+ <button id="go" type="button">Sign in</button>
+ <div id="m" role="status"></div>
+ <a href="admin.html">Admin</a>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+var $=function(i){return document.getElementById(i)},sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY),up=false;
+function say(t,bad){var m=$("m");m.textContent=t;m.style.color=bad?"var(--bad)":"var(--ok)"}
+function mode(u){up=u;$("t1").className=u?"":"on";$("t2").className=u?"on":"";$("name").classList.toggle("hidden",!u);$("go").textContent=u?"Create account":"Sign in";$("pw").autocomplete=u?"new-password":"current-password";say("")}
+$("t1").onclick=function(){mode(false)};$("t2").onclick=function(){mode(true)};
+sb.auth.getSession().then(function(r){if(r.data.session)location.replace("index.html")});
+$("go").onclick=function(){
+  var em=$("em").value.trim(),pw=$("pw").value,nm=$("name").value.trim();
+  if(!em||pw.length<6){say("Enter your email and a password of at least 6 characters.",1);return}
+  if(up&&!nm){say("Enter your full name.",1);return}
+  $("go").disabled=true;
+  var p=up?sb.auth.signUp({email:em,password:pw,options:{data:{full_name:nm}}}):sb.auth.signInWithPassword({email:em,password:pw});
+  p.then(function(r){
+    $("go").disabled=false;
+    if(r.error){say(r.error.message,1);return}
+    if(r.data.session)location.replace("index.html");
+    else say("Account created. Check your email to confirm it, then sign in.");
+  });
+};
+[$("em"),$("pw"),$("name")].forEach(function(i){i.onkeydown=function(e){if(e.key==="Enter")$("go").click()}});
+</script></body></html>
