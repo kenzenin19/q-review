@@ -2,28 +2,72 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Q Review</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%239b30c9%22/%3E%3Ccircle cx=%2215%22 cy=%2217%22 r=%227.5%22 fill=%22%23f59a23%22/%3E%3Ccircle cx=%2249%22 cy=%2217%22 r=%227.5%22 fill=%22%23f59a23%22/%3E%3Ccircle cx=%2215%22 cy=%2217%22 r=%223.8%22 fill=%22%23ffd9a8%22/%3E%3Ccircle cx=%2249%22 cy=%2217%22 r=%223.8%22 fill=%22%23ffd9a8%22/%3E%3Cellipse cx=%2232%22 cy=%2235%22 rx=%2222%22 ry=%2220%22 fill=%22%23f59a23%22/%3E%3Cellipse cx=%2223%22 cy=%2242%22 rx=%229%22 ry=%227.5%22 fill=%22%23fff6e6%22/%3E%3Cellipse cx=%2241%22 cy=%2242%22 rx=%229%22 ry=%227.5%22 fill=%22%23fff6e6%22/%3E%3Cellipse cx=%2232%22 cy=%2243%22 rx=%226%22 ry=%225%22 fill=%22%23fff6e6%22/%3E%3Cpath d=%22M32 16v8%22 stroke=%22%232a1a12%22 stroke-width=%222.6%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M26 17.5l1.8 6.5%22 stroke=%22%232a1a12%22 stroke-width=%222.4%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M38 17.5l-1.8 6.5%22 stroke=%22%232a1a12%22 stroke-width=%222.4%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M11 30l6 2M10.5 37l6.5 0.5M12.5 44l5.5-1.5%22 stroke=%22%232a1a12%22 stroke-width=%222.4%22 stroke-linecap=%22round%22 fill=%22none%22/%3E%3Cpath d=%22M53 30l-6 2M53.5 37l-6.5 0.5M51.5 44l-5.5-1.5%22 stroke=%22%232a1a12%22 stroke-width=%222.4%22 stroke-linecap=%22round%22 fill=%22none%22/%3E%3Cellipse cx=%2223.5%22 cy=%2232%22 rx=%223.2%22 ry=%223.6%22 fill=%22%232a1a12%22/%3E%3Cellipse cx=%2240.5%22 cy=%2232%22 rx=%223.2%22 ry=%223.6%22 fill=%22%232a1a12%22/%3E%3Ccircle cx=%2224.6%22 cy=%2230.8%22 r=%221.1%22 fill=%22%23fff%22/%3E%3Ccircle cx=%2241.6%22 cy=%2230.8%22 r=%221.1%22 fill=%22%23fff%22/%3E%3Cpath d=%22M28.2 39.5h7.6l-3.8 4.2z%22 fill=%22%23e0527a%22/%3E%3Cpath d=%22M32 43.7v2.3%22 stroke=%22%232a1a12%22 stroke-width=%221.6%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 46c-1.2 2-4.2 2.4-5.6 0.6M32 46c1.2 2 4.2 2.4 5.6 0.6%22 stroke=%22%232a1a12%22 stroke-width=%221.6%22 stroke-linecap=%22round%22 fill=%22none%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eef1f7;--fg:#222436;--card:#fff;--acc:#9b30c9;--soft:#e6dff0;--ink:#6b4a8a;--line:#d5d9e6;--bad:#c62828;--ok:#1a7f37}
-@media(prefers-color-scheme:dark){:root{--bg:#171923;--fg:#e8e9f2;--card:#22253a;--soft:#363a55;--ink:#d9c6ee;--line:#363a55}}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:16px;font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
-.card{width:100%;max-width:380px;background:var(--card);border-radius:14px;padding:28px;box-shadow:0 2px 10px #0002}
-h1{font-size:22px;margin:0 0 4px}p.sub{margin:0 0 18px;color:#7b7f92;font-size:13px}
-.tabs{display:flex;gap:6px;margin-bottom:16px}.tabs button{flex:1;background:var(--soft);color:var(--ink)}.tabs button.on{background:var(--acc);color:#fff}
-input,button{font:inherit;border-radius:8px;border:1px solid var(--line);padding:10px 12px;width:100%;background:transparent;color:inherit}
-input{margin-bottom:10px}button{border:0;cursor:pointer;font-weight:600}#go{background:var(--acc);color:#fff;margin-top:4px}
-#m{min-height:20px;font-size:13px;margin-top:10px}.hidden{display:none}a{color:var(--ink);font-size:12px}
-@media(max-width:480px){body{padding:10px;place-items:start center}.card{padding:20px;margin-top:6vh}input,button{font-size:16px;padding:12px}}
+:root{--bg:#eef1f7;--band:#cfdcec;--fg:#222436;--card:#fff;--acc:#9b30c9;--acc-d:#832aa9;--soft:#e6dff0;--ink:#6b4a8a;--line:#d5d9e6;--mut:#737891;--bad:#c62828;--ok:#1a7f37;--field:#fff}
+@media(prefers-color-scheme:dark){:root{--bg:#171923;--band:#262a40;--fg:#e8e9f2;--card:#22253a;--soft:#363a55;--ink:#d9c6ee;--line:#3b3f5c;--mut:#9ea3bb;--field:#1b1d2e;--bad:#ff8a80;--ok:#7bd88f}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:96px 16px 32px;font:15px/1.5 Montserrat,system-ui,sans-serif;color:var(--fg);
+  background:linear-gradient(var(--band),var(--band)) top/100% 230px no-repeat,var(--bg)}
+.card{position:relative;width:100%;max-width:400px;background:var(--card);border-radius:18px;padding:62px 30px 30px;box-shadow:0 2px 14px rgba(30,40,80,.10)}
+#cat{position:absolute;left:50%;top:-46px;width:92px;height:92px;transform:translateX(-50%);overflow:visible}
+#cat .lid{transform-box:fill-box;transform-origin:center;transition:transform .18s ease}
+#cat.shut .lid{transform:scaleY(.1)}
+#cat.shut #pup{opacity:0}
+#pup{transition:transform .12s ease-out,opacity .12s}
+h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0 0 2px;text-align:center}
+p.sub{margin:0 0 22px;text-align:center;color:var(--mut);font-size:14px}
+.seg{position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--soft);border-radius:12px;padding:4px;margin-bottom:20px}
+.seg .thumb{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);background:var(--acc);border-radius:9px;transition:transform .22s cubic-bezier(.3,.8,.3,1);box-shadow:0 1px 4px rgba(155,48,201,.35)}
+.seg[data-m="up"] .thumb{transform:translateX(100%)}
+.seg button{position:relative;z-index:1;border:0;background:none;font:600 14px Montserrat,system-ui,sans-serif;color:var(--ink);padding:11px 8px;cursor:pointer;border-radius:9px;transition:color .2s;width:auto}
+.seg[data-m="in"] #t1,.seg[data-m="up"] #t2{color:#fff}
+label{display:block;font-size:13px;font-weight:600;margin:0 0 6px}
+.fld{margin-bottom:14px}
+input{font:inherit;font-size:16px;width:100%;height:50px;border-radius:11px;border:1.5px solid var(--line);padding:0 14px;margin:0;background:var(--field);color:inherit;transition:border-color .15s,box-shadow .15s}
+input::placeholder{color:var(--mut);opacity:.7}
+input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 4px rgba(155,48,201,.16)}
+.pwrap{position:relative}.pwrap input{padding-right:50px}
+#eye{position:absolute;right:6px;top:6px;width:38px;height:38px;border:0;border-radius:9px;background:none;color:var(--mut);cursor:pointer;display:grid;place-items:center;padding:0}
+#eye:hover{background:var(--soft);color:var(--ink)}#eye.on{color:var(--acc)}
+#eye svg{width:20px;height:20px}
+#eye .slash{display:none}#eye.on .slash{display:block}
+#note{font-size:13px;color:var(--mut);margin:-2px 0 14px;padding:10px 12px;background:var(--bg);border-radius:10px;border-left:3px solid var(--acc)}
+#go{width:100%;height:52px;border:0;border-radius:12px;background:var(--acc);color:#fff;font:600 16px Montserrat,system-ui,sans-serif;cursor:pointer;margin-top:4px;transition:background .15s,transform .05s;display:flex;align-items:center;justify-content:center;gap:10px;padding:0}
+#go:hover{background:var(--acc-d)}#go:active{transform:scale(.985)}
+#go:disabled{cursor:default;opacity:.85}
+#go.busy::after{content:"";width:16px;height:16px;border-radius:50%;border:2.5px solid #fff5;border-top-color:#fff;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#m{min-height:22px;font-size:13.5px;margin-top:12px;text-align:center}
+.hidden{display:none}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+@media(max-width:480px){body{padding-top:84px}.card{padding:58px 20px 24px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation-duration:.01ms!important}}
 </style></head><body>
-<div class="card">
- <h1>Q Review</h1><p class="sub">Sign in to continue</p>
- <div class="tabs"><button id="t1" class="on" type="button">Sign in</button><button id="t2" type="button">Create account</button></div>
- <input id="name" class="hidden" placeholder="Full name (first and last name)" autocomplete="name">
- <input id="em" type="email" placeholder="Email" autocomplete="username">
- <input id="pw" type="password" placeholder="Password (min 6 characters)" autocomplete="current-password">
- <p id="note" class="hidden" style="font-size:13px;color:#7b7f92;margin:0 0 10px"><b>Use your real full name</b> (first and last name).</p>
+<main class="card">
+ <svg id="cat" viewBox="0 0 64 64" aria-hidden="true">
+  <circle cx="15" cy="17" r="7.5" fill="#f59a23"/><circle cx="49" cy="17" r="7.5" fill="#f59a23"/>
+  <circle cx="15" cy="17" r="3.8" fill="#ffd9a8"/><circle cx="49" cy="17" r="3.8" fill="#ffd9a8"/>
+  <ellipse cx="32" cy="35" rx="22" ry="20" fill="#f59a23"/>
+  <ellipse cx="23" cy="42" rx="9" ry="7.5" fill="#fff6e6"/><ellipse cx="41" cy="42" rx="9" ry="7.5" fill="#fff6e6"/><ellipse cx="32" cy="43" rx="6" ry="5" fill="#fff6e6"/>
+  <path d="M32 16v8M26 17.5l1.8 6.5M38 17.5l-1.8 6.5" stroke="#2a1a12" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M11 30l6 2M10.5 37l6.5 .5M12.5 44l5.5-1.5M53 30l-6 2M53.5 37l-6.5 .5M51.5 44l-5.5-1.5" stroke="#2a1a12" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+  <g class="lid"><ellipse cx="23.5" cy="32" rx="3.4" ry="3.8" fill="#2a1a12"/><ellipse cx="40.5" cy="32" rx="3.4" ry="3.8" fill="#2a1a12"/>
+    <g id="pup"><circle cx="24.6" cy="30.8" r="1.2" fill="#fff"/><circle cx="41.6" cy="30.8" r="1.2" fill="#fff"/></g></g>
+  <path d="M28.2 39.5h7.6l-3.8 4.2z" fill="#e0527a"/><path d="M32 43.7v2.3" stroke="#2a1a12" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M32 46c-1.2 2-4.2 2.4-5.6.6M32 46c1.2 2 4.2 2.4 5.6.6" stroke="#2a1a12" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+</svg>
+ <h1>Q Review</h1><p class="sub" id="sub">Sign in to continue</p>
+ <div class="seg" id="seg" data-m="in" role="group" aria-label="Sign in or create account"><span class="thumb"></span>
+  <button id="t1" type="button" aria-pressed="true">Sign in</button><button id="t2" type="button" aria-pressed="false">Create account</button></div>
+ <div class="fld hidden" id="nmw"><label for="name">Full name</label><input id="name" placeholder="First and last name" autocomplete="name"></div>
+ <div class="fld"><label for="em">Email</label><input id="em" type="email" placeholder="you@example.com" autocomplete="username"></div>
+ <div class="fld"><label for="pw">Password</label><div class="pwrap"><input id="pw" type="password" placeholder="At least 6 characters" autocomplete="current-password"><button id="eye" type="button" aria-label="Show password" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path class="slash" d="M4 4l16 16"/></svg></button></div></div>
+ <p id="note" class="hidden"><b>Use your real full name</b> (first and last name). An admin approves new accounts before you can open the quizzes.</p>
  <button id="go" type="button">Sign in</button>
  <div id="m" role="status"></div>
-</div>
+</main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script>
@@ -46,7 +90,7 @@ function route(){bindDevice().then(function(b){
     sb.rpc("is_admin").then(function(a){location.replace(a.data?"admin.html":"index.html")},function(){location.replace("index.html")})
   },function(){location.replace("index.html")})})}
 function say(t,bad){var m=$("m");m.textContent=t;m.style.color=bad?"var(--bad)":"var(--ok)"}
-function mode(u){up=u;$("t1").className=u?"":"on";$("t2").className=u?"on":"";["name","note"].forEach(function(i){$(i).classList.toggle("hidden",!u)});$("go").textContent=u?"Create account":"Sign in";$("pw").autocomplete=u?"new-password":"current-password";say("")}
+function mode(u){up=u;$("t1").className=u?"":"on";$("t2").className=u?"on":"";["nmw","note"].forEach(function(i){$(i).classList.toggle("hidden",!u)});$("go").textContent=u?"Create account":"Sign in";$("pw").autocomplete=u?"new-password":"current-password";say("");$("seg").dataset.m=u?"up":"in";$("sub").textContent=u?"Create your account":"Sign in to continue";$("t1").setAttribute("aria-pressed",!u);$("t2").setAttribute("aria-pressed",u)}
 $("t1").onclick=function(){mode(false)};$("t2").onclick=function(){mode(true)};
 if(/[?&]dev=1/.test(location.search))refused();
 sb.auth.getSession().then(function(r){if(r.data.session)route()});
@@ -54,14 +98,29 @@ $("go").onclick=function(){
   var em=$("em").value.trim(),pw=$("pw").value,nm=$("name").value.trim();
   if(!em||pw.length<6){say("Enter your email and a password of at least 6 characters.",1);return}
   if(up&&nm.split(/\s+/).length<2){say("Enter your full name (first and last name).",1);return}
-  $("go").disabled=true;
+  $("go").disabled=true;$("go").classList.add("busy");
   var p=up?sb.auth.signUp({email:em,password:pw,options:{data:{full_name:nm}}}):sb.auth.signInWithPassword({email:em,password:pw});
   p.then(function(r){
-    $("go").disabled=false;
+    $("go").disabled=false;$("go").classList.remove("busy");
     if(r.error){say(r.error.message,1);return}
     if(r.data.session)route();
     else say("Account created. Check your email to confirm it, then sign in.");
   });
 };
 [$("em"),$("pw"),$("name")].forEach(function(i){i.onkeydown=function(e){if(e.key==="Enter")$("go").click()}});
-</script></body></html>
+/* ---- show / hide password ---- */
+$("eye").onclick=function(){var s=$("pw").type==="password";$("pw").type=s?"text":"password";this.setAttribute("aria-pressed",s);this.setAttribute("aria-label",s?"Hide password":"Show password");this.classList.toggle("on",s);look(0,0,1)};
+/* ---- the cat follows the pointer, looks at the field you are typing in, and covers its eyes for a hidden password ---- */
+var CAT=$("cat"),PUP=$("pup"),still=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
+function look(x,y,keep){
+  var hide=document.activeElement===$("pw")&&$("pw").type==="password";
+  CAT.classList.toggle("shut",hide&&!still);
+  if(hide||keep)return;
+  var b=CAT.getBoundingClientRect(),cx=b.left+b.width/2,cy=b.top+b.height*.5,dx=x-cx,dy=y-cy,d=Math.sqrt(dx*dx+dy*dy)||1,k=Math.min(1,d/160)*2.2;
+  PUP.style.transform="translate("+(dx/d*k).toFixed(2)+"px,"+(dy/d*k).toFixed(2)+"px)";
+}
+function toField(el){var r=el.getBoundingClientRect();look(r.left+Math.min(r.width/2,80),r.top+r.height/2)}
+document.addEventListener("pointermove",function(e){if(!still&&!/INPUT/.test(document.activeElement.tagName))look(e.clientX,e.clientY)});
+[$("name"),$("em"),$("pw")].forEach(function(i){i.addEventListener("focus",function(){toField(i)});i.addEventListener("blur",function(){look(innerWidth/2,innerHeight)});i.addEventListener("input",function(){toField(i)})});
+</script>
+</body></html>
