@@ -546,7 +546,7 @@ function finish(timeUp){
   S.scores[S.k]=S.score;S.timeUp=!!timeUp;saveAtt();saveAttemptDB();
   H[S.k].push({score:S.score,ans:JSON.parse(JSON.stringify(S.ans)),started:S.startedAt,completed:new Date(),secs:TOTAL-S.left});
   if(lkv(S.k)){S.view="info";renderInfo();toast(lks(S.k)?"Attempt submitted. Your score and answers are locked.":"Attempt submitted. Your answers are locked.");}
-  else{S.view="review";renderReview();}
+  else{S.view="result";renderResult();}
   window.scrollTo(0,0);
 }
 function show(i){
@@ -689,20 +689,25 @@ function renderReview(idx){
   bindSearch();
 }
 function renderResult(){
-  var used=TOTAL-S.left,LS=lkv(S.k),LSC=lks(S.k);
+  var used=TOTAL-S.left,LS=lkv(S.k),LSC=lks(S.k),LA=lka(S.k),n=Q.length,nc=0,nu=0;
+  var items=Q.map(function(q,i){var ok=correct(i),an=answered(i);if(ok)nc++;else if(!an)nu++;
+    return '<div class="it '+(ok?"ok":"no")+'"><span class="tag">'+(ok?"&#10003; Correct":(an?"&#10007; Incorrect":"&#10007; Not answered"))+' &middot; Question '+(i+1)+'</span>'+
+    '<p>'+esc(q.t)+'</p><p><b>Your answer:</b> '+esc(show(i))+'</p>'+(ok?"":'<p><b>Correct answer:</b> '+esc(right(i))+'</p>')+'</div>';}).join("");
+  var G=mt(S.k).grade||10,pc=tot(Q)?Math.round(S.score/tot(Q)*100):0;
+  var chips=LSC?'<div class="lknote">'+LOCK_ICO+'<span>Your score is locked.</span></div>':
+    '<p class="score">'+S.score+' / '+tot(Q)+' <span style="font-size:18px;color:var(--muted)">('+pc+'%)</span></p>'+
+    '<div class="chips"><div class="chip"><small>Correct</small>'+nc+' of '+n+'</div><div class="chip"><small>Incorrect</small>'+(n-nc-nu)+'</div><div class="chip"><small>Not answered</small>'+nu+'</div><div class="chip"><small>Grade</small>'+(S.score/tot(Q)*G).toFixed(2)+' / '+G.toFixed(2)+'</div></div>';
   root.innerHTML=
   '<button class="btn back" id="back" type="button">Back to course</button>'+
   '<div class="card"><h2 class="qt">Attempt finished</h2>'+
-  (S.timeUp?'<p>Time is up. Your attempt was submitted automatically.</p>':'')+
-  '<div class="meta"><span>'+TITLES[S.k]+'</span><span>Time taken: '+Math.floor(used/60)+' min '+(used%60)+' secs</span></div>'+
-  (LSC?'<p class="score"><span class="sblur">0 / 0</span> '+LOCK_ICO+'</p><div class="lknote">'+LOCK_ICO+'<span>Your score is locked.</span></div>':'<p class="score">'+S.score+' / '+tot(Q)+' <span style="font-size:18px;color:var(--muted)">('+Math.round(S.score/tot(Q)*100)+'%)</span></p>')+
-  (LS?'<div class="lknote">'+LOCK_ICO+'<span>Answers are locked for this quiz.</span></div><div hidden>':'')+'<div class="rev">'+Q.map(function(q,i){var ok=correct(i);
-    return '<div class="it '+(ok?"ok":"no")+'"><span class="tag">Question '+(i+1)+' &middot; '+(ok?"Correct":"Incorrect")+'</span>'+
-    '<p>'+esc(q.t)+'</p><p><b>Your answer:</b> '+esc(show(i))+'</p>'+(ok?"":'<p><b>Correct answer:</b> '+esc(right(i))+'</p>')+'</div>';}).join("")+'</div>'+(LS?'</div>':'')+
-  '<div class="nav"><button class="btn ghost" id="retake" type="button">Retake quiz</button><button class="btn primary" id="course" type="button">Return to course</button></div></div>';
+  (S.timeUp?'<p>Time is up. Your attempt was submitted automatically.</p>':'<p>Your answers were checked.</p>')+
+  '<div class="meta"><span>'+esc(TITLES[S.k])+'</span><span>Time taken: '+Math.floor(used/60)+' min '+(used%60)+' secs</span></div>'+chips+
+  (LS?'<div class="lknote">'+LOCK_ICO+'<span>Answers are locked for this quiz.</span></div>':'<div class="rev">'+items+'</div>')+
+  '<div class="nav">'+(LS?'':'<button class="btn ghost" id="frev" type="button">Full review</button>')+'<button class="btn ghost'+(LA?' lockedb':'')+'" id="retake" type="button">'+(LA?LOCK_ICO+'Attempts locked':'Retake quiz')+'</button><button class="btn primary" id="course" type="button">Return to course</button></div></div>';
   $("back").onclick=function(){S.view="course";renderCourse();window.scrollTo(0,0);};
   $("course").onclick=$("back").onclick;
-  $("retake").onclick=function(){A[S.k]=null;beginQuiz(S.k);};
+  if($("frev"))$("frev").onclick=function(){S.view="review";renderReview();window.scrollTo(0,0);};
+  $("retake").onclick=function(){if(LA){toast("Attempts are locked for this quiz");return;}A[S.k]=null;beginQuiz(S.k);};
 }
 
 
@@ -782,7 +787,7 @@ function persist(){
   try{
     var v=S.view,live=(v==="quiz"||v==="summary")&&S.started&&!S.finished&&S.k;
     if(live)saveAtt();
-    if(v==="empty"||v==="token")v=S.k&&QS[S.k]&&QS[S.k].length?"info":"course";
+    if(v==="empty"||v==="token"||v==="result")v=S.k&&QS[S.k]&&QS[S.k].length?"info":"course";
     if(v!=="home"&&v!=="course"&&v!=="info"&&v!=="answers"&&v!=="review"&&!live)v="course";
     var ip={};Object.keys(A).forEach(function(k){if(A[k]&&!A[k].finished)ip[k]=A[k];});
     localStorage.setItem(sessKey(),JSON.stringify({t:Date.now(),y:window.scrollY||0,r:S.ridx,v:v,c:S.course,k:S.k,open:S.open,done:S.done,scores:S.scores,A:ip,H:H,live:!!live}));
