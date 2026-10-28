@@ -114,7 +114,9 @@ function qBySlug(s){return QZ.filter(function(q){return q.slug===s})[0]}
 function subOpts(sel,all){return (all?"<option value=''>All subjects</option>":"")+SUB.map(function(s){return"<option value='"+s.id+"'>"+esc(s.name)+"</option>"}).join("")+(all?"":"<option value=''>No subject</option>")}
 
 $("go").onclick=function(){sb.auth.signInWithPassword({email:$("em").value,password:$("pw").value}).then(function(r){if(r.error)msg(r.error.message,1);else boot()})};
-$("out").onclick=function(){sb.auth.signOut().then(function(){location.replace("login.html")})};
+function clearAuth(){try{Object.keys(localStorage).forEach(function(k){if(/^sb-.*-auth-token/.test(k))localStorage.removeItem(k)})}catch(e){}}
+function hardSignOut(){return sb.auth.signOut({scope:"local"}).then(clearAuth,clearAuth)}
+$("out").onclick=function(){hardSignOut().then(function(){location.replace("login.html?out=1")})};
 function boot(){sb.auth.getSession().then(function(r){
   if(!r.data.session)return;
   sb.rpc("is_admin").then(function(a){

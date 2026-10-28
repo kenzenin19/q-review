@@ -690,6 +690,8 @@ var sb=null;
 var ME=null;
 var DEV=(function(){try{var d=localStorage.getItem("qr_device");if(!d){d=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2));localStorage.setItem("qr_device",d);}return d}catch(e){return "tmp-"+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)}})();
 function mkClient(){return supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{global:{headers:{"x-device-id":DEV}}})}
+function clearAuth(){try{Object.keys(localStorage).forEach(function(k){if(/^sb-.*-auth-token/.test(k))localStorage.removeItem(k)})}catch(e){}}
+function hardSignOut(){return sb.auth.signOut({scope:"local"}).then(clearAuth,clearAuth)}
 function bindDevice(){return sb.rpc("bind_device",{p_device:DEV,p_ua:(navigator.userAgent||"").slice(0,200)}).then(function(r){return r&&r.data},function(){return null})}
 function refused(){
   var h=location.hostname||"This site";
@@ -715,7 +717,7 @@ function addBar(){
   var d=document.createElement("div");d.style.cssText="position:fixed;top:6px;left:12px;z-index:20;font-size:12px;background:#fff;color:#222436;border-radius:14px;padding:3px 4px 3px 12px;box-shadow:0 1px 4px #0003;display:flex;gap:8px;align-items:center";
   var n=document.createElement("span");n.textContent=(ME.user_metadata&&ME.user_metadata.full_name)||ME.email;
   var b=document.createElement("button");b.textContent="Sign out";b.style.cssText="background:#e6dff0;color:#6b4a8a;border-radius:10px;padding:3px 10px;font-size:12px";
-  b.onclick=function(){sb.auth.signOut().then(function(){location.replace("login.html");});};
+  b.onclick=function(){hardSignOut().then(function(){location.replace("login.html?out=1");});};
   d.appendChild(n);d.appendChild(b);document.body.appendChild(d);
   sb.rpc("is_admin").then(function(r){if(r.data){var a=document.createElement("a");a.href="admin.html";a.textContent="Admin";a.style.cssText="color:#6b4a8a;font-weight:600;text-decoration:none";d.insertBefore(a,b);}});
 }
@@ -748,7 +750,7 @@ function loadDB(){
     if(!r.data.session){location.replace("login.html");return;}
     ME=r.data.session.user;
     bindDevice().then(function(b){
-    if(b==="mismatch"){sb.auth.signOut().then(refused);return;}
+    if(b==="mismatch"){hardSignOut().then(refused);return;}
     addBar();
     Promise.all([sb.rpc("is_admin"),sb.from("profiles").select("status").eq("user_id",ME.id).maybeSingle()]).then(function(x){
       var st=x[1].data&&x[1].data.status;

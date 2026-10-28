@@ -29,15 +29,18 @@ input{margin-bottom:10px}button{border:0;cursor:pointer;font-weight:600}#go{back
 <script>
 var DEV=(function(){try{var d=localStorage.getItem("qr_device");if(!d){d=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2));localStorage.setItem("qr_device",d);}return d}catch(e){return "tmp-"+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)}})();
 function mkClient(){return supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{global:{headers:{"x-device-id":DEV}}})}
+function clearAuth(){try{Object.keys(localStorage).forEach(function(k){if(/^sb-.*-auth-token/.test(k))localStorage.removeItem(k)})}catch(e){}}
+function hardSignOut(){return sb.auth.signOut({scope:"local"}).then(clearAuth,clearAuth)}
 function bindDevice(){return sb.rpc("bind_device",{p_device:DEV,p_ua:(navigator.userAgent||"").slice(0,200)}).then(function(r){return r&&r.data},function(){return null})}
 function refused(){
   var h=location.hostname||"This site";
   document.title=h;
   document.documentElement.innerHTML='<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+h+'</title><style>:root{--bg:#f1f3f4;--fg:#5f6368;--ic:#9aa0a6}@media(prefers-color-scheme:dark){:root{--bg:#202124;--fg:#bdc1c6;--ic:#80868b}}html,body{height:100%;margin:0}body{background:var(--bg);color:var(--fg);font:15px/1.5 "Segoe UI",Roboto,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px}svg{display:block;margin:0 auto 18px;width:72px;height:72px;color:var(--ic)}h1{font-size:15px;font-weight:400;margin:0}</style></head><body><div><svg viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M44 8H18a5 5 0 0 0-5 5v46a5 5 0 0 0 5 5h36a5 5 0 0 0 5-5V23z"/><path d="M44 8v15h15"/><circle cx="29" cy="38" r="1.6" fill="currentColor"/><circle cx="43" cy="38" r="1.6" fill="currentColor"/><path d="M28 51c3-4 13-4 16 0"/></svg><h1>'+h+' refused to connect.</h1></div></body>';
 }
+if(/[?&]out=1/.test(location.search))clearAuth();
 var $=function(i){return document.getElementById(i)},sb=mkClient(),up=false;
 function route(){bindDevice().then(function(b){
-  if(b==="mismatch"){sb.auth.signOut().then(refused);return}
+  if(b==="mismatch"){hardSignOut().then(refused);return}
   sb.rpc("is_admin").then(function(a){location.replace(a.data?"admin.html":"index.html")},function(){location.replace("index.html")})})}
 function say(t,bad){var m=$("m");m.textContent=t;m.style.color=bad?"var(--bad)":"var(--ok)"}
 function mode(u){up=u;$("t1").className=u?"":"on";$("t2").className=u?"on":"";["name","note"].forEach(function(i){$(i).classList.toggle("hidden",!u)});$("go").textContent=u?"Create account":"Sign in";$("pw").autocomplete=u?"new-password":"current-password";say("")}
