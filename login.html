@@ -12,9 +12,22 @@ body{margin:0;min-height:100vh;display:grid;place-items:center;padding:96px 16px
   background:linear-gradient(var(--band),var(--band)) top/100% 230px no-repeat,var(--bg)}
 .card{position:relative;width:100%;max-width:400px;background:var(--card);border-radius:18px;padding:62px 30px 30px;box-shadow:0 2px 14px rgba(30,40,80,.10)}
 #cat{position:absolute;left:50%;top:-46px;width:92px;height:92px;transform:translateX(-50%);overflow:visible}
-#cat.stuck{position:fixed;top:6px;z-index:50;width:64px;height:64px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
+#cat.stuck{position:fixed;top:6px;z-index:50;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
 #cat .lid{transform-box:fill-box;transform-origin:center;transition:transform .18s ease}
-#cat.shut .lid{transform:scaleY(.1)}
+#cat .x{display:none}
+#cat{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#cat[data-e=happy] .eh,#cat[data-e=happy] .mh,#cat[data-e=happy] .bl{display:inline}
+#cat[data-e=happy] .lid,#cat[data-e=happy] .md{display:none}
+#cat[data-e=wink] .ew,#cat[data-e=wink] .mh,#cat[data-e=wink] .bl{display:inline}
+#cat[data-e=wink] .er,#cat[data-e=wink] .md{display:none}
+#cat[data-e=sad] .ms,#cat[data-e=sad] .br,#cat[data-e=sad] .tear{display:inline}
+#cat[data-e=sad] .md{display:none}
+#cat[data-e=wow] .mw,#cat[data-e=wow] .br2{display:inline}
+#cat[data-e=wow] .md{display:none}
+#cat[data-e=wow] .lid{transform:scale(1.25)}
+#cat[data-e=sad] .tear{animation:tear 1.4s ease-in infinite}
+@keyframes tear{0%{transform:translateY(-2px);opacity:0}25%{opacity:1}100%{transform:translateY(8px);opacity:0}}
+#cat.shut .lid,#cat.blink .lid{transform:scaleY(.1)}
 #cat.shut #pup{opacity:0}
 #pup{transition:transform .12s ease-out,opacity .12s}
 h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0 0 2px;text-align:center}
@@ -54,10 +67,19 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   <ellipse cx="23" cy="42" rx="9" ry="7.5" fill="#fff6e6"/><ellipse cx="41" cy="42" rx="9" ry="7.5" fill="#fff6e6"/><ellipse cx="32" cy="43" rx="6" ry="5" fill="#fff6e6"/>
   <path d="M32 16v8M26 17.5l1.8 6.5M38 17.5l-1.8 6.5" stroke="#2a1a12" stroke-width="2.4" stroke-linecap="round"/>
   <path d="M11 30l6 2M10.5 37l6.5 .5M12.5 44l5.5-1.5M53 30l-6 2M53.5 37l-6.5 .5M51.5 44l-5.5-1.5" stroke="#2a1a12" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-  <g class="lid"><ellipse cx="23.5" cy="32" rx="3.4" ry="3.8" fill="#2a1a12"/><ellipse cx="40.5" cy="32" rx="3.4" ry="3.8" fill="#2a1a12"/>
-    <g id="pup"><circle cx="24.6" cy="30.8" r="1.2" fill="#fff"/><circle cx="41.6" cy="30.8" r="1.2" fill="#fff"/></g></g>
+  <g class="lid"><ellipse cx="23.5" cy="32" rx="3.4" ry="3.8" fill="#2a1a12"/><ellipse class="er" cx="40.5" cy="32" rx="3.4" ry="3.8" fill="#2a1a12"/>
+    <g id="pup"><circle cx="24.6" cy="30.8" r="1.2" fill="#fff"/><circle class="er" cx="41.6" cy="30.8" r="1.2" fill="#fff"/></g></g>
   <path d="M28.2 39.5h7.6l-3.8 4.2z" fill="#e0527a"/><path d="M32 43.7v2.3" stroke="#2a1a12" stroke-width="1.6" stroke-linecap="round"/>
-  <path d="M32 46c-1.2 2-4.2 2.4-5.6.6M32 46c1.2 2 4.2 2.4 5.6.6" stroke="#2a1a12" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+  <path class="md" d="M32 46c-1.2 2-4.2 2.4-5.6.6M32 46c1.2 2 4.2 2.4 5.6.6" stroke="#2a1a12" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+  <path class="x mh" d="M26 45.5c1.5 6 10.5 6 12 0z" fill="#8a2a3a" stroke="#2a1a12" stroke-width="1.5" stroke-linejoin="round"/>
+  <path class="x ms" d="M26.5 50c1.8-3.6 9.2-3.6 11 0" stroke="#2a1a12" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+  <ellipse class="x mw" cx="32" cy="48.5" rx="2.6" ry="3.3" fill="#2a1a12"/>
+  <path class="x eh" d="M19.5 33.5c1.5-4.5 6.5-4.5 8 0M36.5 33.5c1.5-4.5 6.5-4.5 8 0" stroke="#2a1a12" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+  <path class="x ew" d="M36.5 33.5c1.5-4.5 6.5-4.5 8 0" stroke="#2a1a12" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+  <ellipse class="x bl" cx="16.5" cy="40" rx="3.4" ry="2" fill="#ff8fa3" opacity=".6"/><ellipse class="x bl" cx="47.5" cy="40" rx="3.4" ry="2" fill="#ff8fa3" opacity=".6"/>
+  <path class="x br" d="M19.5 27l7.5-3.5M44.5 27l-7.5-3.5" stroke="#2a1a12" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path class="x br2" d="M20 25.5c2-2 5-2 7 0M37 25.5c2-2 5-2 7 0" stroke="#2a1a12" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <ellipse class="x tear" cx="20.5" cy="38" rx="1.5" ry="2.2" fill="#7ec8f2"/>
 </svg>
  <h1>Q Review</h1><p class="sub" id="sub">Sign in to continue</p>
  <div class="seg" id="seg" data-m="in" role="group" aria-label="Sign in or create account"><span class="thumb"></span>
@@ -90,7 +112,7 @@ function route(){bindDevice().then(function(b){
     if(d&&d.data===true){location.replace("courses.html");return}
     sb.rpc("is_admin").then(function(a){location.replace(a.data?"admin.html":"index.html")},function(){location.replace("index.html")})
   },function(){location.replace("index.html")})})}
-function say(t,bad){var m=$("m");m.textContent=t;m.style.color=bad?"var(--bad)":"var(--ok)"}
+function say(t,bad){var m=$("m");m.textContent=t;m.style.color=bad?"var(--bad)":"var(--ok)";if(t)face(bad?"sad":"happy",bad?3500:5000)}
 function mode(u){up=u;$("t1").className=u?"":"on";$("t2").className=u?"on":"";["nmw","note"].forEach(function(i){$(i).classList.toggle("hidden",!u)});$("go").textContent=u?"Create account":"Sign in";$("pw").autocomplete=u?"new-password":"current-password";say("");$("seg").dataset.m=u?"up":"in";$("sub").textContent=u?"Create your account":"Sign in to continue";$("t1").setAttribute("aria-pressed",!u);$("t2").setAttribute("aria-pressed",u)}
 $("t1").onclick=function(){mode(false)};$("t2").onclick=function(){mode(true)};
 if(/[?&]dev=1/.test(location.search))refused();
@@ -110,11 +132,12 @@ $("go").onclick=function(){
 };
 [$("em"),$("pw"),$("name")].forEach(function(i){i.onkeydown=function(e){if(e.key==="Enter")$("go").click()}});
 /* ---- show / hide password ---- */
-$("eye").onclick=function(){var s=$("pw").type==="password";$("pw").type=s?"text":"password";this.setAttribute("aria-pressed",s);this.setAttribute("aria-label",s?"Hide password":"Show password");this.classList.toggle("on",s);look(0,0,1)};
+$("eye").onclick=function(){var s=$("pw").type==="password";$("pw").type=s?"text":"password";this.setAttribute("aria-pressed",s);this.setAttribute("aria-label",s?"Hide password":"Show password");this.classList.toggle("on",s);look(0,0,1);if(s)face("wow",1300)};
 /* ---- the cat follows the pointer, looks at the field you are typing in, and covers its eyes for a hidden password ---- */
 var CAT=$("cat"),PUP=$("pup"),still=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
 function look(x,y,keep){
   var hide=document.activeElement===$("pw")&&$("pw").type==="password";
+  if(hide&&CAT.hasAttribute("data-e"))face(null);
   CAT.classList.toggle("shut",hide&&!still);
   if(hide||keep)return;
   var b=CAT.getBoundingClientRect(),cx=b.left+b.width/2,cy=b.top+b.height*.5,dx=x-cx,dy=y-cy,d=Math.sqrt(dx*dx+dy*dy)||1,k=Math.min(1,d/160)*2.2;
@@ -123,6 +146,18 @@ function look(x,y,keep){
 function toField(el){var r=el.getBoundingClientRect();look(r.left+Math.min(r.width/2,80),r.top+r.height/2)}
 document.addEventListener("pointermove",function(e){if(!still&&!/INPUT/.test(document.activeElement.tagName))look(e.clientX,e.clientY)});
 [$("name"),$("em"),$("pw")].forEach(function(i){i.addEventListener("focus",function(){toField(i)});i.addEventListener("blur",function(){look(innerWidth/2,innerHeight)});i.addEventListener("input",function(){toField(i)})});
+/* ---- face expressions: happy, wink, sad, surprised. Errors make it sad, success makes it happy, tap it to cycle. ---- */
+var faceT,FACES=["happy","wink","wow","sad"],fi=0;
+function face(e,ms){
+  clearTimeout(faceT);
+  if(e)CAT.setAttribute("data-e",e);else CAT.removeAttribute("data-e");
+  if(e&&ms)faceT=setTimeout(function(){CAT.removeAttribute("data-e")},ms);
+}
+CAT.addEventListener("click",function(){face(FACES[fi++%FACES.length],2200)});
+if(!still)setInterval(function(){
+  if(CAT.hasAttribute("data-e")||CAT.classList.contains("shut"))return;
+  CAT.classList.add("blink");setTimeout(function(){CAT.classList.remove("blink")},140);
+},3400);
 /* ---- the cat sticks to the top of the screen once you scroll past it (works with the mobile keyboard too) ---- */
 (function(){
   var card=document.querySelector(".card"),vv=window.visualViewport;
