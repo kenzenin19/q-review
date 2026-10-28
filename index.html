@@ -717,9 +717,9 @@ function refused(){
   document.documentElement.innerHTML='<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+h+'</title><style>:root{--bg:#f1f3f4;--fg:#5f6368;--ic:#9aa0a6}@media(prefers-color-scheme:dark){:root{--bg:#202124;--fg:#bdc1c6;--ic:#80868b}}html,body{height:100%;margin:0}body{background:var(--bg);color:var(--fg);font:15px/1.5 "Segoe UI",Roboto,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px}svg{display:block;margin:0 auto 18px;width:72px;height:72px;color:var(--ic)}h1{font-size:15px;font-weight:400;margin:0}</style></head><body><div><svg viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M44 8H18a5 5 0 0 0-5 5v46a5 5 0 0 0 5 5h36a5 5 0 0 0 5-5V23z"/><path d="M44 8v15h15"/><circle cx="29" cy="38" r="1.6" fill="currentColor"/><circle cx="43" cy="38" r="1.6" fill="currentColor"/><path d="M28 51c3-4 13-4 16 0"/></svg><h1>'+h+' refused to connect.</h1></div></body>';
 }
 function renderPending(st){
-  var rej=st==="rejected",nm=esc((ME.user_metadata&&ME.user_metadata.full_name)||ME.email);
-  if(!rej){root.innerHTML='<div class="card" style="display:flex;justify-content:center;padding:16px"><img src="waiting.gif" alt="Waiting for approval" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px"></div>';}
-  else root.innerHTML='<div class="card"><h2 class="qt">Access declined</h2><p style="font-size:16px;max-width:60ch">Your account request was not approved. Please contact your admin.</p><p style="font-size:16px">Name submitted: <b>'+nm+'</b></p><p style="font-size:14px;color:#7b7f92;max-width:60ch">Make sure this is your complete real name.</p></div>';
+  var rej=st==="rejected";
+  var img='<div class="card" style="display:flex;justify-content:center;padding:16px"><img src="waiting.gif" alt="'+(rej?"Access declined":"Waiting for approval")+'" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px"></div>';
+  root.innerHTML=img;
   setInterval(function(){sb.from("profiles").select("status").eq("user_id",ME.id).maybeSingle().then(function(r){if(r.data&&r.data.status==="approved")location.reload();});},10000);
 }
 function logEvent(kind){
@@ -742,14 +742,14 @@ function addBar(){
 function loadDB(){
   if(!window.supabase||!window.SUPABASE_URL||/YOUR_/.test(window.SUPABASE_URL))return Promise.resolve();
   sb=sb||mkClient();
-  return Promise.all([sb.from("quizzes").select("slug,title,meta,subject_id,locked,lock_attempts,lock_scores,questions(position,type,text,options,answer,weight,extra)").eq("published",true),sb.from("subjects").select("id,name,locked")]).then(function(rr){
+  return Promise.all([sb.from("quizzes").select("slug,title,meta,subject_id,locked,lock_attempts,lock_scores,questions(position,type,text,options,answer,weight,extra)").eq("published",true),sb.from("subjects").select("id,name,locked,lock_attempts,lock_scores")]).then(function(rr){
     var r=rr[0];SUBS=(rr[1]&&rr[1].data)||[];
     if(r.error||!r.data)return;
     var known={};Object.keys(SECS).forEach(function(c){SECS[c].forEach(function(sec){sec.items.forEach(function(it){if(it.quiz)known[it.quiz]=1;});});});
     var extra=[];
     r.data.forEach(function(z){
       var sj=SUBS.filter(function(x){return x.id===z.subject_id;})[0];
-      LK[z.slug]={q:!!(z.locked||(sj&&sj.locked)),att:!!z.lock_attempts,sc:!!z.lock_scores};
+      LK[z.slug]={q:!!(z.locked||(sj&&sj.locked)),att:!!(z.lock_attempts||(sj&&sj.lock_attempts)),sc:!!(z.lock_scores||(sj&&sj.lock_scores))};
       if(LK[z.slug].q&&QS[z.slug]){TITLES[z.slug]=TITLES[z.slug]||z.title;if(!H[z.slug])H[z.slug]=[];return;}
       QS[z.slug]=z.questions.sort(function(a,b){return a.position-b.position;}).map(function(x){
         var q={t:x.text,type:x.type,a:x.answer};
