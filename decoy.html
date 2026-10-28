@@ -4,16 +4,19 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* Everything is in rem and the root size scales with the window, so the layout keeps the same proportions as the original screenshot (1716px wide = 24px root). */
+/* Real size: 24px root at 100% zoom (panel 1422px, centered). Smaller windows scale it down proportionally. */
 html{font-size:17px}
-@media(min-width:900px){html{font-size:clamp(11px,calc(100vw / 1716 * 24),32px)}}
+@media(min-width:900px){html{font-size:clamp(11px,calc(100vw / 1500 * 24),24px)}}
 *{box-sizing:border-box}html,body{margin:0}
 body{font-family:Montserrat,"Segoe UI",system-ui,sans-serif;color:#222436;background:#edf0f8;min-height:100vh;
-  background-image:linear-gradient(#cfdcec,#cfdcec);background-repeat:no-repeat;background-size:100% 3.875rem}
-.tab{position:absolute;top:0;left:0;width:10rem;height:.14rem;background:#fff;border-radius:0 0 .4rem 0}
-.wrap{padding:.5rem .6rem 2rem}
+  background-image:linear-gradient(#cfdcec,#cfdcec);background-repeat:no-repeat;background-size:100% 6.375rem;background-position:0 .35rem}
+body::before{content:"";display:block;height:.35rem;background:#fff;border-bottom:1px solid #dfe3ea;position:absolute;top:0;left:0;right:0}
+.bar{position:absolute;top:.75rem;left:.75rem;z-index:5;display:flex;align-items:center;gap:.4rem;background:#fff;border-radius:1rem;padding:.15rem .15rem .15rem .75rem;box-shadow:0 1px 4px #0002;font-size:.79rem;color:#222436;max-width:calc(100% - 1.5rem)}
+.bar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar button{font:inherit;border:0;border-radius:.85rem;background:#e6dff0;color:#7a5a9a;padding:.2rem .6rem;cursor:pointer}
+.wrap{padding:3.4rem .6rem 2rem}
 .panel{background:#fff;border-radius:.92rem;padding:1.4rem 1.1rem 1.4rem;box-shadow:0 1px 3px #0001}
-@media(min-width:900px){.wrap{padding:.375rem 0 2rem 1.958rem}.panel{width:59.25rem;padding:2.083rem 1.75rem 1.79rem}}
+@media(min-width:900px){.wrap{padding:2.875rem 0 2rem}.panel{width:59.25rem;margin:0 auto;padding:2.083rem 1.75rem 1.79rem}}
 h1{font-size:1.833rem;font-weight:500;line-height:1.2;margin:0 0 1.167rem;color:#1c1e2b}
 .grid{display:grid;grid-template-columns:1fr;gap:.875rem}
 @media(min-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
@@ -34,7 +37,7 @@ table{border-collapse:collapse;width:100%;font-size:max(.68rem,13px);margin:.5re
 .nav{display:flex;justify-content:space-between;margin-top:1.4rem;gap:.5rem}
 .nav button{font:inherit;font-size:max(.7rem,14px);font-weight:600;border:0;border-radius:.4rem;padding:.45rem .8rem;background:#efe6f6;color:#6e3d8f;cursor:pointer}
 </style></head><body>
-<div class="tab"></div>
+<div class="bar"><span id="who"></span><button id="so" type="button">Sign out</button></div>
 <div class="wrap"><div class="panel" id="root"></div></div>
 
 <script>
@@ -115,9 +118,14 @@ home();
   function check(){
     sb.auth.getSession().then(function(r){
       if(!r.data.session){location.replace("login.html");return}
+      var u=r.data.session.user;document.getElementById("who").textContent=(u.user_metadata&&u.user_metadata.full_name)||u.email||"";
       sb.rpc("my_decoy").then(function(x){if(x&&x.data===false)location.replace("index.html")},function(){});
     });
   }
+  document.getElementById("so").onclick=function(){
+    var go=function(){try{Object.keys(localStorage).forEach(function(k){if(/^sb-.*-auth-token/.test(k))localStorage.removeItem(k)})}catch(e){}location.replace("login.html?out=1")};
+    sb.auth.signOut({scope:"local"}).then(go,go);
+  };
   check();setInterval(check,10000);
 })();
 </script>
