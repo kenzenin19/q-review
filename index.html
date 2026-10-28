@@ -688,6 +688,11 @@ META.dsa_q2={limit:"30 mins",secs:1800,method:"Highest grade",pass:"Not specifie
 /* ---------------- Supabase: quizzes + attempts ---------------- */
 var sb=null;
 var ME=null;
+function renderPending(st){
+  var rej=st==="rejected";
+  root.innerHTML='<div class="card"><h2 class="qt">'+(rej?"Access declined":"Waiting for approval")+'</h2><p style="font-size:16px;max-width:60ch">'+(rej?"Your account request was not approved. Please contact your instructor.":"Your account was created. The admin must review and approve it before you can see the quizzes. Check back soon.")+'</p><div class="nav" style="justify-content:flex-start"><button class="btn primary" id="chk" type="button">Check again</button></div></div>';
+  $("chk").onclick=function(){location.reload();};
+}
 function logEvent(kind){
   if(!sb||!ME||!S.k)return;
   sb.from("events").insert({user_id:ME.id,student_name:(ME.user_metadata&&ME.user_metadata.full_name)||ME.email,quiz_slug:S.k,kind:kind}).then(function(){},function(){});
@@ -732,7 +737,11 @@ function loadDB(){
   sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
   sb.auth.getSession().then(function(r){
     if(!r.data.session){location.replace("login.html");return;}
-    ME=r.data.session.user;addBar();loadDB().then(function(){renderHome();});
+    ME=r.data.session.user;addBar();
+    Promise.all([sb.rpc("is_admin"),sb.from("profiles").select("status").eq("user_id",ME.id).maybeSingle()]).then(function(x){
+      var st=x[1].data&&x[1].data.status;
+      if(x[0].data||x[1].error||st==="approved"){loadDB().then(function(){renderHome();});}else{renderPending(st);}
+    });
   });
 })();
 </script>
