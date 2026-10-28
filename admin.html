@@ -124,16 +124,19 @@ function boot(){sb.auth.getSession().then(function(r){
   });
 })}
 
+var DV={};
+function devInfo(id){var d=DV[id];return d?" · Device bound "+new Date(d.bound_at).toLocaleDateString()+" ("+(/Mobi|Android|iPhone|iPad/i.test(d.user_agent||"")?"phone":"computer")+")":" · No device yet"}
 function load(){
   return Promise.all([
     sb.from("subjects").select("*").order("position").order("name"),
     sb.from("quizzes").select("id,slug,title,published,meta,subject_id,questions(count)").order("slug"),
     sb.from("attempts").select("user_id,quiz_slug,student_name,score,total,secs,created_at").order("created_at",{ascending:false}).limit(500),
     sb.from("events").select("user_id,student_name,quiz_slug,kind,created_at").order("created_at",{ascending:false}).limit(3000),
-    sb.from("profiles").select("*").order("created_at",{ascending:false})
+    sb.from("profiles").select("*").order("created_at",{ascending:false}),
+    sb.from("account_devices").select("user_id,bound_at,user_agent")
   ]).then(function(r){
     if(r[0].error){msg("Subjects table missing. Run 003_subjects.sql in Supabase first.",1)}
-    SUB=r[0].data||[];QZ=r[1].data||[];AT=r[2].data||[];EV=r[3].error?[]:(r[3].data||[]);PF=r[4].error?[]:(r[4].data||[]);
+    SUB=r[0].data||[];QZ=r[1].data||[];AT=r[2].data||[];EV=r[3].error?[]:(r[3].data||[]);PF=r[4].error?[]:(r[4].data||[]);DV={};(r[5]&&!r[5].error?(r[5].data||[]):[]).forEach(function(d){DV[d.user_id]=d});
     $("usub").innerHTML=subOpts();$("eS").innerHTML=subOpts();$("rsub").innerHTML=subOpts(1);
     fillRq();renderQ();renderS();renderR();renderT();renderA();
   });
@@ -262,14 +265,15 @@ function renderA(){
   $("pb").textContent=pend;$("pb").classList.toggle("hidden",!pend);
   var l=PF.filter(function(p){return(!f||p.status===f)&&(!q||((p.full_name||"")+(p.email||"")).toLowerCase().indexOf(q)>-1)});
   $("al").innerHTML=l.map(function(p){var id=" data-id='"+p.user_id+"'";
-    return"<div class='qr'><div class='qh'><div class='t'><b style='font-size:16px'>"+esc(p.full_name||"(no name)")+"</b> <span class='pill "+(p.status==="approved"?"on":"off")+"'>"+p.status+"</span>"+((p.full_name||"").trim().split(/\s+/).length<2?" <span class='pill off warn'>Check name: not a full name?</span>":"")+"<br><small>"+esc(p.email)+" · Requested "+new Date(p.created_at).toLocaleString()+"</small></div></div><div class='acts'>"+
-    (p.status!=="approved"?"<button class='s' data-a='ap'"+id+">Approve</button>":"")+(p.status==="pending"?"<button class='s d' data-a='rj'"+id+">Reject</button>":"")+(p.status==="approved"?"<button class='s d' data-a='rv'"+id+">Revoke access</button>":"")+"</div></div>"}).join("")||"<p class='help'>No accounts here.</p>";
+    return"<div class='qr'><div class='qh'><div class='t'><b style='font-size:16px'>"+esc(p.full_name||"(no name)")+"</b> <span class='pill "+(p.status==="approved"?"on":"off")+"'>"+p.status+"</span>"+((p.full_name||"").trim().split(/\s+/).length<2?" <span class='pill off warn'>Check name: not a full name?</span>":"")+"<br><small>"+esc(p.email)+" · Requested "+new Date(p.created_at).toLocaleString()+devInfo(p.user_id)+"</small></div></div><div class='acts'>"+
+    (p.status!=="approved"?"<button class='s' data-a='ap'"+id+">Approve</button>":"")+(p.status==="pending"?"<button class='s d' data-a='rj'"+id+">Reject</button>":"")+(p.status==="approved"?"<button class='s d' data-a='rv'"+id+">Revoke access</button>":"")+(DV[p.user_id]?"<button class='s' data-a='rd'"+id+">Reset device</button>":"")+"</div></div>"}).join("")||"<p class='help'>No accounts here.</p>";
 }
 function setStatus(col,val,st,ok){sb.from("profiles").update({status:st,reviewed_at:new Date().toISOString()}).eq(col,val).then(function(r){if(r.error)msg(r.error.message,1);else{msg(ok);load()}})}
 $("af").onchange=renderA;$("aq").oninput=renderA;
 $("al").onclick=function(e){var b=e.target.closest("button");if(!b)return;var id=b.dataset.id,a=b.dataset.a
   if(a==="ap")setStatus("user_id",id,"approved","Approved");
   if(a==="rj")setStatus("user_id",id,"rejected","Rejected");
+  if(a==="rd"&&confirm("Reset this student's device? They can then sign in on a new phone."))sb.from("account_devices").delete().eq("user_id",id).then(function(r){if(r.error)msg(r.error.message,1);else{msg("Device reset");load()}});
   if(a==="rv"&&confirm("Remove this student's access?"))setStatus("user_id",id,"rejected","Access revoked")};
 $("aall").onclick=function(){var n=PF.filter(function(p){return p.status==="pending"}).length;if(n&&confirm("Approve all "+n+" pending accounts?"))setStatus("status","pending","approved","Approved "+n+" accounts")};
 

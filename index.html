@@ -688,6 +688,9 @@ META.dsa_q2={limit:"30 mins",secs:1800,method:"Highest grade",pass:"Not specifie
 /* ---------------- Supabase: quizzes + attempts ---------------- */
 var sb=null;
 var ME=null;
+var DEV=(function(){try{var d=localStorage.getItem("qr_device");if(!d){d=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2));localStorage.setItem("qr_device",d);}return d}catch(e){return "tmp-"+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)}})();
+function mkClient(){return supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{global:{headers:{"x-device-id":DEV}}})}
+function bindDevice(){return sb.rpc("bind_device",{p_device:DEV,p_ua:(navigator.userAgent||"").slice(0,200)}).then(function(r){return r&&r.data},function(){return null})}
 function renderPending(st){
   var rej=st==="rejected",nm=esc((ME.user_metadata&&ME.user_metadata.full_name)||ME.email);
   if(!rej){root.innerHTML='<div class="card" style="display:flex;justify-content:center;padding:16px"><img src="waiting.gif" alt="Waiting for approval" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px"></div>';}
@@ -713,7 +716,7 @@ function addBar(){
 }
 function loadDB(){
   if(!window.supabase||!window.SUPABASE_URL||/YOUR_/.test(window.SUPABASE_URL))return Promise.resolve();
-  sb=sb||supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  sb=sb||mkClient();
   return sb.from("quizzes").select("slug,title,meta,questions(position,type,text,options,answer,weight,extra)").eq("published",true).then(function(r){
     if(r.error||!r.data)return;
     var known={};Object.keys(SECS).forEach(function(c){SECS[c].forEach(function(sec){sec.items.forEach(function(it){if(it.quiz)known[it.quiz]=1;});});});
@@ -735,13 +738,17 @@ function loadDB(){
 }
 (function(){
   if(!window.supabase||!window.SUPABASE_URL||/YOUR_/.test(window.SUPABASE_URL)){renderHome();return;}
-  sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  sb=mkClient();
   sb.auth.getSession().then(function(r){
     if(!r.data.session){location.replace("login.html");return;}
-    ME=r.data.session.user;addBar();
+    ME=r.data.session.user;
+    bindDevice().then(function(b){
+    if(b==="mismatch"){sb.auth.signOut().then(function(){location.replace("login.html?dev=1");});return;}
+    addBar();
     Promise.all([sb.rpc("is_admin"),sb.from("profiles").select("status").eq("user_id",ME.id).maybeSingle()]).then(function(x){
       var st=x[1].data&&x[1].data.status;
       if(x[0].data||x[1].error||st==="approved"){loadDB().then(function(){renderHome();});}else{renderPending(st);}
+    });
     });
   });
 })();
