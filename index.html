@@ -710,7 +710,7 @@ var ME=null;
 var DEV=(function(){try{var d=localStorage.getItem("qr_device");if(!d){d=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2));localStorage.setItem("qr_device",d);}return d}catch(e){return "tmp-"+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)}})();
 function mkClient(){return supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{global:{headers:{"x-device-id":DEV}}})}
 function clearAuth(){try{Object.keys(localStorage).forEach(function(k){if(/^sb-.*-auth-token/.test(k))localStorage.removeItem(k)})}catch(e){}}
-function hardSignOut(){return sb.auth.signOut({scope:"local"}).then(clearAuth,clearAuth)}
+function hardSignOut(){NOPERSIST=true;try{localStorage.removeItem(sessKey())}catch(e){}return sb.auth.signOut({scope:"local"}).then(clearAuth,clearAuth)}
 function bindDevice(){return sb.rpc("bind_device",{p_device:DEV,p_ua:(navigator.userAgent||"").slice(0,200)}).then(function(r){return r&&r.data},function(){return null})}
 function refused(){
   var h=location.hostname||"This site";
@@ -766,6 +766,47 @@ function loadDB(){
     if(extra.length){SECTIONS.push({id:"extra",title:"More quizzes",items:extra});S.open.extra=true;}
   }).catch(function(){});
 }
+/* ---------- keep the student on the same page after a refresh ---------- */
+function sessKey(){return "qr_session_"+(ME&&ME.id);}
+var NOPERSIST=false;
+function persist(){
+  if(!ME||NOPERSIST)return;
+  try{
+    var v=S.view,live=(v==="quiz"||v==="summary")&&S.started&&!S.finished&&S.k;
+    if(live)saveAtt();
+    if(v==="answers"||v==="review"||v==="empty"||v==="token")v=S.k&&QS[S.k]&&QS[S.k].length?"info":"course";
+    if(v!=="home"&&v!=="course"&&v!=="info"&&!live)v="course";
+    var ip={};Object.keys(A).forEach(function(k){if(A[k]&&!A[k].finished)ip[k]=A[k];});
+    localStorage.setItem(sessKey(),JSON.stringify({t:Date.now(),v:v,c:S.course,k:S.k,open:S.open,done:S.done,scores:S.scores,A:ip,H:H,live:!!live}));
+  }catch(e){}
+}
+function restoreSession(){
+  var d;try{d=JSON.parse(localStorage.getItem(sessKey())||"null");}catch(e){d=null;}
+  if(!d||!d.v)return false;
+  try{
+    if(d.open)Object.keys(d.open).forEach(function(k){S.open[k]=d.open[k];});
+    if(d.done)Object.keys(d.done).forEach(function(k){S.done[k]=d.done[k];});
+    if(d.scores)Object.keys(d.scores).forEach(function(k){S.scores[k]=d.scores[k];});
+    if(d.H)Object.keys(d.H).forEach(function(k){H[k]=(d.H[k]||[]).map(function(h){return{score:h.score,ans:h.ans,secs:h.secs,started:new Date(h.started),completed:new Date(h.completed)};});});
+    var el=(Date.now()-(d.t||Date.now()))/1000;
+    if(d.A)Object.keys(d.A).forEach(function(k){if(QS[k]&&QS[k].length&&!lkq(k))A[k]=d.A[k];});
+    if(d.c&&(SECS[d.c]||COURSES.some(function(c){return c.id===d.c;})))S.course=d.c;
+    var k=d.k,ok=k&&QS[k]&&QS[k].length&&!lkq(k);
+    if(ok&&d.live&&A[k]&&!lka(k)){
+      S.k=k;Q=QS[k];TOTAL=mt(k).secs;
+      var a=A[k];a.left=a.left-Math.floor(el);   /* the clock keeps running while the page reloads */
+      loadAtt(a);S.started=true;S.finished=false;S.startedAt=new Date(a.startedAt);
+      if(S.left<=0){S.left=0;finish(true);return true;}
+      S.view=d.v==="summary"?"summary":"quiz";startTimer();
+      if(S.view==="summary")renderSummary();else renderQuiz();
+      return true;
+    }
+    if(ok&&d.v==="info"){S.k=k;Q=QS[k];S.view="info";renderInfo();return true;}
+    if(d.v==="course"||d.v==="info"||d.v==="quiz"||d.v==="summary"){S.view="course";renderCourse();return true;}
+    return false;
+  }catch(e){return false;}
+}
+function startPersist(){setInterval(persist,1000);window.addEventListener("pagehide",persist);document.addEventListener("visibilitychange",function(){if(document.hidden)persist();});}
 (function(){
   if(!window.supabase||!window.SUPABASE_URL||/YOUR_/.test(window.SUPABASE_URL)){renderHome();return;}
   sb=mkClient();
@@ -777,7 +818,7 @@ function loadDB(){
     addBar();
     Promise.all([sb.rpc("is_admin"),sb.from("profiles").select("status").eq("user_id",ME.id).maybeSingle()]).then(function(x){
       var st=x[1].data&&x[1].data.status;
-      if(x[0].data||x[1].error||st==="approved"){loadDB().then(function(){renderHome();});}else{renderPending(st);}
+      if(x[0].data||x[1].error||st==="approved"){loadDB().then(function(){if(!restoreSession())renderHome();startPersist();});}else{renderPending(st);}
     });
     });
   });
