@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quiz Admin</title>
+<style>
+:root{--bg:#eef1f7;--fg:#222436;--card:#fff;--acc:#9b30c9;--line:#e6e9f1;--bad:#c62828;--ok:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#171923;--fg:#e8e9f2;--card:#22253a;--line:#363a55}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+main{max-width:900px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:18px;box-shadow:0 2px 8px #0001}
+h1{font-size:24px}h2{font-size:18px;margin-top:0}
+input,textarea,select,button{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:inherit}
+textarea{width:100%;min-height:200px;font-family:ui-monospace,monospace;font-size:13px}
+button{background:var(--acc);color:#fff;border:0;cursor:pointer}button.s{background:#8883;color:inherit;padding:4px 10px}button.d{background:var(--bad)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}label{font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+#msg{position:sticky;top:0;padding:8px 12px;border-radius:8px;margin-bottom:12px;display:none}
+.hidden{display:none}code{background:#8882;padding:1px 5px;border-radius:4px}
+</style></head><body><main>
+<h1>Quiz Admin</h1><div id="msg"></div>
+
+<div class="card" id="login"><h2>Sign in</h2>
+ <div class="row"><input id="em" type="email" placeholder="email" autocomplete="username"><input id="pw" type="password" placeholder="password" autocomplete="current-password"><button id="go">Sign in</button></div></div>
+
+<div id="app" class="hidden">
+ <div class="row"><span id="who"></span><button class="s" id="out">Sign out</button></div>
+
+ <div class="card"><h2>Upload quiz</h2>
+  <div class="row">
+   <label>Slug <input id="slug" placeholder="e.g. pre5" size="14"></label>
+   <label>Title <input id="title" placeholder="Pretest: Module 5" size="34"></label>
+  </div>
+  <div class="row">
+   <label>Time (min) <input id="mins" type="number" value="10" min="1" style="width:80px"></label>
+   <label>Grading <select id="method"><option>Highest grade</option><option>Last attempt</option></select></label>
+   <label>Pass mark <input id="pass" value="Not specified" size="16"></label>
+   <label>Max grade <input id="grade" type="number" value="10" style="width:80px"></label>
+   <label><input id="pub" type="checkbox" checked> Published</label>
+  </div>
+  <p style="font-size:13px">Paste a JSON array or pick a <code>.json</code> file. Each question: <code>{"t":"text","type":"radio|multi|text","o":["A","B"],"a":[0],"w":1}</code>. For <code>text</code> type, <code>a</code> is a string. Uploading an existing slug replaces its questions. Use a slug already on the course page (e.g. <code>pre5</code>, <code>dsa_q3</code>) to fill that slot; any new slug appears under “More quizzes”.</p>
+  <input type="file" id="file" accept=".json,application/json">
+  <textarea id="json" placeholder='[{"t":"2 + 2 = ?","type":"text","a":"4"},{"t":"Pick primes","type":"multi","o":["1","2","3","4"],"a":[1,2],"w":2}]'></textarea>
+  <div class="row"><button id="up">Upload</button></div>
+ </div>
+
+ <div class="card"><h2>Quizzes</h2><table id="qt"></table></div>
+ <div class="card"><h2>Recent attempts</h2><table id="at"></table></div>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+var $=function(i){return document.getElementById(i)};
+var sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function msg(t,bad){var m=$("msg");m.textContent=t;m.style.display="block";m.style.background=bad?"#f6c6c6":"#cfe9d4";m.style.color="#222";clearTimeout(msg.h);msg.h=setTimeout(function(){m.style.display="none"},4000)}
+
+$("go").onclick=function(){sb.auth.signInWithPassword({email:$("em").value,password:$("pw").value}).then(function(r){if(r.error)msg(r.error.message,1);else boot()})};
+$("out").onclick=function(){sb.auth.signOut().then(function(){location.reload()})};
+$("file").onchange=function(e){var f=e.target.files[0];if(!f)return;f.text().then(function(t){$("json").value=t;if(!$("slug").value)$("slug").value=f.name.replace(/\.json$/i,"")})};
+
+function boot(){
+  sb.auth.getSession().then(function(r){
+    if(!r.data.session)return;
+    sb.rpc("is_admin").then(function(a){
+      if(!a.data){msg("This account is not an admin. Add it to the admins table.",1);return}
+      $("login").classList.add("hidden");$("app").classList.remove("hidden");
+      $("who").textContent="Signed in as "+r.data.session.user.email;load();
+    });
+  });
+}
+
+function load(){
+  sb.from("quizzes").select("id,slug,title,published,questions(count)").order("slug").then(function(r){
+    var h="<tr><th>Slug</th><th>Title</th><th>Qs</th><th>Status</th><th></th></tr>";
+    (r.data||[]).forEach(function(z){
+      h+="<tr><td><code>"+esc(z.slug)+"</code></td><td>"+esc(z.title)+"</td><td>"+(z.questions[0]?z.questions[0].count:0)+"</td>"+
+      "<td>"+(z.published?"<span style='color:var(--ok)'>Published</span>":"Draft")+"</td>"+
+      "<td><button class='s' data-a='pub' data-id='"+z.id+"' data-v='"+z.published+"'>"+(z.published?"Unpublish":"Publish")+"</button> "+
+      "<button class='s' data-a='exp' data-id='"+z.id+"' data-s='"+esc(z.slug)+"'>Export</button> "+
+      "<button class='s d' data-a='del' data-id='"+z.id+"' data-s='"+esc(z.slug)+"'>Delete</button></td></tr>";
+    });
+    $("qt").innerHTML=h;
+  });
+  sb.from("attempts").select("quiz_slug,student_name,score,total,secs,created_at").order("created_at",{ascending:false}).limit(50).then(function(r){
+    var h="<tr><th>When</th><th>Student</th><th>Quiz</th><th>Score</th><th>Time</th></tr>";
+    (r.data||[]).forEach(function(a){h+="<tr><td>"+new Date(a.created_at).toLocaleString()+"</td><td>"+esc(a.student_name||"-")+"</td><td><code>"+esc(a.quiz_slug)+"</code></td><td>"+a.score+" / "+a.total+"</td><td>"+Math.round((a.secs||0)/60)+" min</td></tr>"});
+    $("at").innerHTML=h;
+  });
+}
+
+$("qt").onclick=function(e){
+  var b=e.target.closest("button");if(!b)return;var id=b.dataset.id;
+  if(b.dataset.a==="pub")sb.from("quizzes").update({published:b.dataset.v!=="true"}).eq("id",id).then(load);
+  if(b.dataset.a==="del"&&confirm("Delete quiz "+b.dataset.s+" and all its questions?"))sb.from("quizzes").delete().eq("id",id).then(function(){msg("Deleted");load()});
+  if(b.dataset.a==="exp")sb.from("questions").select("*").eq("quiz_id",id).order("position").then(function(r){
+    var out=r.data.map(function(x){var q={t:x.text,type:x.type,a:x.answer};if(x.options)q.o=x.options;if(x.weight>1)q.w=x.weight;return Object.assign(q,x.extra||{})});
+    var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,1)],{type:"application/json"}));a.download=b.dataset.s+".json";a.click();
+  });
+};
+
+function validate(qs){
+  if(!Array.isArray(qs)||!qs.length)throw "JSON must be a non-empty array";
+  qs.forEach(function(q,i){var n="Question "+(i+1)+": ";
+    if(!q.t)throw n+"missing t (question text)";
+    if(["radio","multi","text","drop","match"].indexOf(q.type)<0)throw n+"type must be radio, multi or text";
+    if(q.type==="text"){if(typeof q.a!=="string")throw n+"a must be a string for text questions"}
+    else{if(!Array.isArray(q.o)||q.o.length<2)throw n+"o needs at least 2 options";
+      if(!Array.isArray(q.a)||!q.a.length)throw n+"a must be an array of correct option indexes";
+      q.a.forEach(function(x){if(!(x>=0&&x<q.o.length))throw n+"answer index "+x+" is out of range"})}
+  });
+}
+
+$("up").onclick=function(){
+  var slug=$("slug").value.trim(),title=$("title").value.trim(),qs;
+  try{
+    if(!/^[a-z0-9_]+$/.test(slug))throw "Slug: lowercase letters, numbers, underscore only";
+    if(!title)throw "Title is required";
+    qs=JSON.parse($("json").value);validate(qs);
+  }catch(e){msg(String(e.message||e),1);return}
+  var mins=+$("mins").value||10;
+  var meta={limit:mins+" mins",secs:mins*60,method:$("method").value,pass:$("pass").value,grade:+$("grade").value||10};
+  var row={slug:slug,title:title,meta:meta,published:$("pub").checked};
+  sb.from("quizzes").upsert(row,{onConflict:"slug"}).select("id").single().then(function(r){
+    if(r.error)throw r.error;var id=r.data.id;
+    return sb.from("questions").delete().eq("quiz_id",id).then(function(){
+      var rows=qs.map(function(q,i){var x=Object.assign({},q);var t=x.t,type=x.type,o=x.o,a=x.a,w=x.w;delete x.t;delete x.type;delete x.o;delete x.a;delete x.w;
+        return{quiz_id:id,position:i+1,type:type,text:t,options:o==null?null:o,answer:a,weight:w||1,extra:x}});
+      return sb.from("questions").insert(rows);
+    });
+  }).then(function(r){if(r&&r.error)throw r.error;msg("Uploaded "+qs.length+" questions to "+slug);load()})
+  .catch(function(e){msg(e.message||String(e),1)});
+};
+boot();
+</script></body></html>

@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discrete Probability Part 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f7; --band:#cfdcec; --card:#ffffff; --fg:#222436; --muted:#7b7f92; --line:#e6e9f1;
+  --link:#2a3566; --accent:#9b30c9; --accent-soft:#e6dff0; --accent-ink:#6b4a8a; --icon:#c2487a;
+  --chev:#cfe0f1; --sec:#8a3a9f; --ok:#1a7f37; --bad:#c62828;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Montserrat,system-ui,sans-serif;background:var(--bg);color:var(--fg);font-size:15px;line-height:1.5}
+button{font:inherit;cursor:pointer;border:0}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.band{background:var(--band);height:96px}
+.wrap{max-width:980px;margin:-56px auto 48px;padding:0 16px}
+.card{background:var(--card);border-radius:14px;padding:28px;box-shadow:0 2px 10px rgba(30,40,80,.08);position:relative}
+.btn{border-radius:8px;padding:10px 18px;font-weight:500;font-size:14px}
+.back{background:#a9bfe6;color:#1d2b4f;margin-bottom:14px}
+.primary{background:var(--accent);color:#fff}
+.ghost{background:var(--accent-soft);color:var(--accent-ink)}
+.ghost[disabled]{opacity:.45;cursor:default}
+
+/* ---------- course page ---------- */
+.section-head{display:flex;align-items:center;gap:18px;background:none;width:100%;text-align:left;padding:4px 0}
+.chev{width:38px;height:38px;border-radius:9px;background:var(--chev);display:grid;place-items:center;flex:none;color:#1d2b4f;transition:transform .15s}
+.section-head[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+.section-head h2{font-size:28px;font-weight:500;margin:0;color:var(--fg)}
+.section-head.minor{padding:14px 0 4px 4px}
+.section-head.minor .chev{background:none;width:24px;height:24px;color:var(--sec)}
+.section-head.minor h2{font-size:22px;color:var(--sec);font-weight:500}
+.acts{list-style:none;margin:10px 0 0;padding:0}
+.act{display:flex;align-items:center;gap:16px;padding:16px 4px;border-bottom:1px solid var(--line)}
+.act:last-child{border-bottom:0}
+.act svg.ico{flex:none;width:34px;height:34px;color:var(--icon)}
+.act .main{flex:1;min-width:0}
+.act .name{display:inline;font-size:17px;color:var(--link);background:none;padding:0;text-align:left;font-weight:500}
+.act .name:hover{text-decoration:underline}
+.act .dates{font-size:13px;color:var(--muted);margin-top:2px}
+.act .dates b{color:var(--fg);font-weight:600;margin-right:4px}
+.act .dates span+span{margin-left:14px}
+.bul{margin:8px 0 6px;padding:0 0 12px 40px;font-size:13px;color:var(--link);border-bottom:1px solid var(--line)}
+.bul li{margin:2px 0}
+.secnote{font-size:13px;margin:10px 4px 4px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.act svg.ico.res{color:#2f8f9d}
+.state{flex:none}
+.done-pill{background:#eef2f6;color:var(--ok);border-radius:8px;padding:6px 12px;font-size:13px;font-style:italic;display:inline-flex;gap:6px;align-items:center}
+.mark{background:none;color:var(--accent-ink);font-style:italic;font-size:13px;padding:6px 8px}
+.mark:hover{text-decoration:underline}
+.empty{color:var(--muted);font-size:14px;padding:10px 8px 6px 32px;font-style:italic}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2a3566;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30;max-width:90vw}
+.toast.show{opacity:1}
+
+/* ---------- quiz ---------- */
+.timer{position:absolute;right:20px;top:-18px;background:#bfe3e3;border-radius:22px;padding:6px 8px 6px 16px;display:flex;gap:14px;align-items:center;font-size:14px;font-variant-numeric:tabular-nums}
+.timer.low{background:#f6c6c6}
+.timer button{background:#e8f4f4;border-radius:14px;padding:4px 12px;font-size:14px;font-weight:500}
+.qh{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h2.qt{font-weight:500;font-size:30px;margin:10px 0 14px}
+.flag{background:#fff;border:1px solid #ddd;border-radius:8px;padding:6px 12px;font-size:13px;color:#7a2c9c;text-decoration:underline}
+.flag.on{background:#fbe8ff}
+.meta{display:flex;gap:30px;flex-wrap:wrap;font-size:13px;padding:14px 4px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.q{padding:26px 4px 8px;font-size:15px}
+.q p{margin:0 0 6px;max-width:72ch}
+.opt{display:flex;align-items:center;gap:12px;margin:14px 0 0 18px;font-size:15px;cursor:pointer}
+.opt input{width:18px;height:18px;accent-color:var(--accent)}
+.opt input.txt{border:1px solid #ccc;border-radius:6px;padding:8px 10px;width:min(280px,100%);height:auto;font:15px Montserrat,sans-serif;margin-left:8px}
+.nav{display:flex;justify-content:space-between;margin-top:30px;gap:12px}
+.jump{display:flex;gap:8px;justify-content:center;margin-top:26px;flex-wrap:wrap}
+.jump button{width:34px;height:34px;border-radius:6px;border:1px solid #bbb;background:#fff;font-size:13px}
+.jump button.done{background:#cfe9d4}
+.jump button.cur{outline:2px solid var(--accent)}
+.score{font-size:42px;font-weight:500;margin:4px 0}
+.rev{display:flex;flex-direction:column;gap:12px;margin:18px 0}
+.rev .it{border:1px solid var(--line);border-left-width:5px;border-radius:10px;padding:12px 16px}
+.rev .it.ok{border-left-color:var(--ok)} .rev .it.no{border-left-color:var(--bad)}
+.rev .tag{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.rev .ok .tag{color:var(--ok)} .rev .no .tag{color:var(--bad)}
+.rev p{margin:4px 0;font-size:14px}
+.mgrid{display:flex;flex-direction:column;gap:14px;margin-top:16px}.mrow{display:flex;align-items:center;gap:18px;flex-wrap:wrap}.mfig svg{display:block;width:230px;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fafafa}.msel{font:14px Montserrat,sans-serif;padding:8px 10px;border:1px solid #bbb;border-radius:8px;background:#f3f4f8;min-width:130px}
+.overlay{position:fixed;inset:0;background:rgba(10,10,30,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.dialog{background:#fff;border-radius:14px;max-width:420px;width:100%;padding:24px}
+.dialog h3{margin:0 0 8px;font-weight:500;font-size:20px}
+.dialog p{margin:0 0 18px}
+.dialog .row{display:flex;justify-content:flex-end;gap:10px}
+h3.sum{font-weight:500;font-size:20px;margin:0 0 14px}
+.tw{overflow-x:auto}
+.st{border-collapse:collapse;width:100%;min-width:300px}
+.st th,.st td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line)}
+.st th{background:#e8eef8;font-weight:600;font-size:14px}
+.st a{color:var(--accent);text-decoration:underline}
+.st .rec{color:var(--ok)} .st .norec{color:var(--bad)}
+.fm{color:var(--accent);font-size:12px;margin-left:10px}
+.cnt{font-size:14px;color:var(--muted);margin:14px 0 0}
+.sc{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:22px}
+.tokrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.tokin{border:1px solid #ccc;border-radius:6px;padding:12px 14px;font:600 18px Montserrat,sans-serif;letter-spacing:.12em;text-transform:uppercase;width:min(260px,100%)}
+.tokmsg{color:var(--bad);font-size:14px!important;min-height:1.4em;margin:14px 0 0!important}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.ccard{display:flex;flex-direction:column;gap:6px;text-align:left;background:#fff;border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:10px;padding:18px;min-width:0}
+.ccard:hover{background:#f6f3fb}
+.ccode{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink)}
+.cname{font-size:18px;font-weight:500;color:var(--link)}
+.cnote{font-size:13px;color:var(--muted)}
+.rt{border-collapse:collapse;margin:0 0 22px;font-size:14px}
+.rt th{text-align:left;font-weight:400;background:#f1f3f6;padding:8px 22px 8px 12px;border:1px solid #dfe3ea;white-space:nowrap}
+.rt td{padding:8px 14px;border:1px solid #dfe3ea}
+.rq{display:flex;gap:16px;border:1px solid #dfe3ea;margin-bottom:14px}
+.rinfo{flex:0 0 130px;background:#f1f3f6;padding:12px;font-size:13px;border-right:1px solid #dfe3ea}
+.rn{font-size:14px;margin-bottom:6px}.rn b{font-size:18px}
+.rs,.rm{margin-bottom:4px}
+.rbody{flex:1;min-width:0;padding:12px 14px 14px 0;font-size:15px}
+.rbody p{margin:0 0 10px}
+.ra{color:#444}
+.rfb{background:#e3eefa;padding:10px 12px;font-size:14px}
+.flink{color:#1c4fa3}
+@media(max-width:560px){.rq{flex-direction:column;gap:0}.rinfo{flex:none;border-right:0;border-bottom:1px solid #dfe3ea}.rbody{padding:12px}.rt th{white-space:normal}}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 22px 10px;margin-bottom:16px}
+.sec .section-head h2{font-size:24px}
+.sec .chev{width:34px;height:34px}
+.todo{background:#fff;border:1px solid #cfd5df;border-radius:6px;padding:5px 10px;font-size:13px;display:inline-flex;gap:6px;align-items:center;color:var(--fg)}
+.lock{display:flex;align-items:center;gap:8px;background:#e8ebf0;border-radius:999px;padding:5px 12px;font-size:12.5px;margin-top:8px;color:#333;min-width:0}
+.lock svg{flex:none}
+.lock .lt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lock.open{border-radius:14px;align-items:flex-start}
+.lock.open .lt{white-space:normal}
+.lock .sm{background:none;font-size:12.5px;font-weight:600;color:var(--fg);display:inline-flex;gap:5px;align-items:center;flex:none}
+.info{padding:40px 36px}
+.info p{margin:0 0 22px;font-size:17px}
+.reattempt{background:#0a2d7a;color:#fff;border-radius:6px;padding:13px 16px;font-size:17px;margin-bottom:26px}
+.yat{font-weight:500;font-size:34px;margin:44px 0 12px}
+.attempt{border:1px solid var(--line);border-radius:10px;padding:16px 20px}
+.attempt+.attempt{margin-top:14px}
+.attempt h3{font-weight:500;font-size:28px;margin:0 0 16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);border-radius:10px;padding:12px 18px;font-size:19px;min-width:0}
+.chip small{display:block;font-size:14px;margin-bottom:6px}
+.info .np{margin:22px 0 4px}
+@media(max-width:560px){.info{padding:20px 16px}.chip{font-size:16px}.yat{font-size:26px}.card{padding:18px}.section-head h2{font-size:22px}.act{align-items:flex-start;flex-wrap:wrap}.state{margin-left:50px}.timer{right:12px}h2.qt{font-size:24px}}
+.eq{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:18px 0 0 18px;font-size:17px}
+.slot{min-width:64px;height:40px;border:1px solid #999;border-radius:4px;display:inline-grid;place-items:center;background:#fff;font-size:16px;cursor:pointer;padding:0 8px}
+.slot.over{background:var(--accent-soft);border-color:var(--accent)}
+.bank{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0 0 18px}
+.tile{border:1px solid #888;background:#f1f3f6;padding:8px 14px;border-radius:4px;font-size:16px;cursor:grab;min-width:46px;text-align:center;user-select:none}
+.tile.used{visibility:hidden}
+.ro{display:flex;align-items:center;gap:12px;margin:8px 0 0 18px;padding:8px 12px;border-radius:8px;border:1px solid transparent;font-size:15px}
+.ro input{width:18px;height:18px;flex:none;accent-color:var(--accent)}
+.ro.right{background:#d6f0dc;border-color:#1a7f37;font-weight:500}
+.ro.wrong{background:#fde2e2;border-color:#c62828}
+.ro .rk{margin-left:auto;font-size:12px;font-weight:600;white-space:nowrap}
+.ro.right .rk,.ro.right>.rk{color:#1a7f37}.ro.wrong .rk{color:#c62828}
+.slot.gok{background:#d6f0dc;border-color:#1a7f37}.slot.gbad{background:#fde2e2;border-color:#c62828}
+.rbody .opt.ro{margin-left:18px}
+.viewans{background:#fff;color:#0a2d7a;border:2px solid #0a2d7a;display:block;margin-bottom:26px}
+.srch{display:flex;align-items:center;gap:12px;margin:0 0 16px}
+.srch input{flex:1;min-width:0;border:1px solid #ccc;border-radius:8px;padding:10px 14px;font:15px Montserrat,sans-serif}
+.qc{font-size:13px;color:var(--muted);white-space:nowrap}
+.qn{color:var(--muted);font-size:14px;margin:6px 0 14px}
+.srch input{animation:srchpulse 2.2s ease-in-out infinite}
+.srch input:focus{animation:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.srch input:not(:placeholder-shown){animation:none}
+@keyframes srchpulse{0%,100%{border-color:#ccc;box-shadow:0 0 0 0 rgba(155,48,201,0)}50%{border-color:var(--accent);box-shadow:0 0 0 4px rgba(155,48,201,.18)}}
+.srch input::placeholder{color:var(--accent-ink);opacity:.85}
+@media(prefers-reduced-motion:reduce){.srch input{animation:none}}
+.tg{width:22px;height:22px;flex:none;border:2px solid #b5b9c6;background:#fff;display:inline-grid;place-items:center;transition:background .2s}
+.tg.rad{border-radius:50%}.tg.chk{border-radius:5px}
+.tg.on{background:#1a7f37;border-color:#1a7f37;animation:tgpop .35s ease-out}
+.tg.on::after{content:"\2713";color:#fff;font-size:14px;font-weight:700;line-height:1}
+.tg.bad{background:#c62828;border-color:#c62828}
+.tg.bad::after{content:"\2715";color:#fff;font-size:12px;font-weight:700;line-height:1}
+@keyframes tgpop{0%{transform:scale(.6)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.tg.on{animation:none}}
+.ordnote{background:#fff8e1;border:1px solid #f0d78a;border-left:5px solid #e0a800;border-radius:8px;padding:12px 16px;font-size:14px;margin:0 0 16px;color:#4a3b00}
+.ccard.locked{position:relative;cursor:not-allowed;overflow:hidden;border-left-color:#b8b3c2}
+.ccard.locked:hover{background:#fff}
+.ccard.locked .cblur{display:flex;flex-direction:column;gap:6px;filter:blur(5px);opacity:.6;user-select:none;pointer-events:none}
+.ccard.locked .clock{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#4a4f66;background:rgba(255,255,255,.35)}
+.clt{font-size:12px;font-weight:600;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div class="band"></div>
+<div class="wrap" id="root"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+/* ---------------- data ---------------- */
+var PRE=[
+{t:"In Bayes' Theorem, how is the conditional probability of event A, given that event B has already occurred, formally denoted?",type:"multi",o:["P(A)","P(A|B)","P(B)","P(B|A)"],a:[1]},
+{t:"Which formula is used to compute the Expected Value for categorical variables?",type:"multi",o:["E(x) = nx","E(n) = n × p","E(x) = n × q","E(x) = n × p"],a:[3]},
+{t:"In a game where two six-sided dice are rolled, what is the expected value of the sum of the results?",type:"text",a:"7"},
+{t:"The linearity of expectation states that the expected value of the sum of random variables is equal to the sum of their individual expected values, but this rule only applies if the variables are independent.",type:"radio",o:["True","False"],a:[1]},
+{t:"Based on the Bayes' Theorem application for a standard deck of 52 cards, what is the posterior probability that a randomly drawn card is a King, given that it is a Face card?",type:"multi",o:["75%","1/3","1/4","1/2","33.33%","0.25"],a:[1,4]}
+];
+var POST=[
+{t:"Based on the Bayes' Theorem application for a standard deck of 52 cards, what is the posterior probability that a randomly drawn card is a King, given that it is a Face card?",type:"multi",o:["1/2","33.33%","1/6","1/3","0.25","75%"],a:[1,3]},
+{t:"In Bayes' Theorem, how is the conditional probability of event A, given that event B has already occurred, formally denoted?",type:"multi",o:["P(B)","P(A|B)","P(A)","P(B|A)"],a:[1]},
+{t:"The linearity of expectation states that the expected value of the sum of random variables is equal to the sum of their individual expected values, but this rule only applies if the variables are independent.",type:"radio",o:["True","False"],a:[1]},
+{t:"If two random variables, X and Y, are known to be dependent on one another, you cannot find the expected value of their sum simply by adding E[X] and E[Y].",type:"radio",o:["True","False"],a:[1]},
+{t:"Bayes' Theorem establishes the relationship between two events exclusively by computing their different conditional probabilities.",type:"radio",o:["True","False"],a:[1]},
+{t:"Which formula is used to compute the Expected Value for categorical variables?",type:"multi",o:["E(n) = n × p","E(x) = n × p","E(x) = nx","E(x) = n × q"],a:[1]},
+{t:"According to the generalized theorem for the linearity of expectation, if a random variable X is multiplied by a constant c, its expected value is also multiplied by that same constant.",type:"radio",o:["True","False"],a:[0]},
+{t:"In the Bayes' Theorem example regarding a standard deck of cards, the probability of initially drawing a King (1/13) acts as the prior probability, while the calculated P(King|Face) acts as the posterior probability.",type:"radio",o:["True","False"],a:[0]},
+{t:"In a game where two six-sided dice are rolled, what is the expected value of the sum of the results?",type:"text",a:"7"},
+{t:"To compute the expected value of the sum of 5 dice throws, you must first calculate the individual probability of every possible sum (from 5 to 30) before averaging them.",type:"radio",o:["True","False"],a:[1]}
+];
+var PRE4=[
+{t:"Find the 3rd element of the following sequence: aₙ = 2ⁿ, where n = 0,1,2,3...",type:"text",a:"4"},
+{t:"What are the first five terms of the sequence in which a₁ = 1 and aₙ = 2aₙ₋₁ − 2?",type:"multi",o:["1, 0, −2, −6, −14","1, 0, 2, 6, 14","0, 1, 2, 6, 14","0, 1, −2, −6, −14","0, 1, 2, 3, 4"],a:[0]},
+{t:"The recurrence relation aₙ = 2aₙ₋₁ + 1 is NON HOMOGENEOUS.",type:"radio",o:["True","False"],a:[0]},
+{t:"Find the 3rd element of the following sequence: aₙ = n², where n = 1,2,3...",type:"text",a:"9"},
+{t:"Find the 3rd element of the following sequence: aₙ = (−1)ⁿ, where n = 0,1,2,3...",type:"text",a:"1"}
+];
+var POST4=[
+{t:"Based on the recurrence relation aₙ = 5aₙ₋₁ + 6aₙ₋₂ and initial conditions (a₀ = 1, a₁ = 3), what is the value of the next term, a₂?",type:"text",a:"21"},
+{t:"Find the 3rd element of the following sequence: aₙ = n², where n = 1,2,3...",type:"text",a:"9"},
+{t:"Find the 3rd element of the following sequence: aₙ = 2ⁿ, where n = 0,1,2,3...",type:"text",a:"4"},
+{t:"Based on the recurrence relation (aₙ = 10aₙ₋₁ + 25aₙ₋₂), what is the value of the term a₂?",type:"text",a:"100"},
+{t:"What are the first five terms of the sequence in which a₁ = 1 and aₙ = 2aₙ₋₁ − 2?",type:"multi",o:["1, 0, −2, −6, −14", "1, 0, 2, 6, 14", "0, 1, 2, 3, 4", "0, 1, −2, −6, −14", "0, 1, 2, 6, 14"],a:[0]},
+{t:"What are the roots of the characteristic equation for the sequence that satisfies the recurrence relation aₙ = 5aₙ₋₁ + 6aₙ₋₂?",type:"multi",o:["1", "2", "−1", "−3", "6", "−6", "−2", "3"],a:[2, 4]},
+{t:"The recurrence relation aₙ = 2aₙ₋₁ + 1 is NON HOMOGENEOUS.",type:"radio",o:["True", "False"],a:[0]},
+{t:"Based on the recurrence relation (aₙ = 10aₙ₋₁ + 25aₙ₋₂), how are the initial conditions defined for this sequence?",type:"multi",o:["a₁ = 5", "a₀ = 5", "a₀ = 2", "a₁ = 2"],a:[0, 2]},
+{t:"What is the characteristic equation for the recurrence relation aₙ = 5aₙ₋₁ + 6aₙ₋₂?",type:"multi",o:["r² + 5r − 6 = 0", "r² − 5r − 6 = 0", "r² − 5r + 6 = 0", "r² − r − 6 = 0", "−r² − 5r − 6 = 0"],a:[1]},
+{t:"Find the 3rd element of the following sequence: aₙ = (−1)ⁿ, where n = 0,1,2,3...",type:"text",a:"1"}
+];
+var PRE5=[];
+var POST5=[];
+var ODE1=[
+{t:"Given the ODE: y‴ + 3y″ − 4y′ − 12y = 0. Complete the equivalent auxiliary equation (drag the numbers into the boxes, or click a number to place it):",type:"drop",w:2,lab:["r³ +","r² +","r +","= 0"],o:["0","−4","12","−3","−12","1","4","3","−1"],a:[5,7,1,4]},
+{t:"Given the ODE: y‴ + 3y″ − 4y′ − 12y = 0. What is the general solution?",type:"multi",w:2,o:["y = C₁e²ˣ + C₂e⁻²ˣ + C₃e⁻³ˣ","y = C₁e⁻²ˣ + C₂e⁻²ˣ + C₃e⁻³ˣ","y = C₁e⁻²ˣ + C₂e²ˣ + C₃e³ˣ","y = C₁e⁻²ˣ + C₂e²ˣ + C₃e⁻³ˣ","y = C₁e²ˣ + C₂e²ˣ + C₃e³ˣ"],a:[0,3]},
+{t:"Given the ODE: y‴ + 3y″ − 4y′ − 12y = 0. Which are the roots?",type:"multi",w:3,o:["1","−1","−3","−4","2","4","3","−2"],a:[2,4,7]},
+{t:"Given the ODE: y‴ + 3y″ − 4y′ − 12y = 0. From the choices below, which are the possible rational roots?",type:"multi",w:3,o:["±1","±10","±5","±12","±7","±6","±9","±8","±2","±3","±4"],a:[0,3,5,8,9,10]}
+];
+var ODE2=[
+{t:"What is the P(x) of the given DE: x²y″ + 3xy′ − 8y = 0",type:"radio",w:2,o:["3y′","3xy′/x","3/x","3xy′","3x"],a:[2]},
+{t:"Given the DE: x²y″ + 2xy′ − 2y = 0  What is y₂(x), if y₁(x) = x? Choose all correct answer/s.",type:"multi",w:2,o:["x","1/x² + (0)x","1/x + (0)x","1/x²","x²"],a:[1,3]},
+{t:"What is the reduced form of the given DE: x²y″ + 2xy′ − 2y = 0  Choose all correct answer/s.",type:"multi",w:2,o:["y″ + 2y′/x + (−2y/x²) = 0","y″ + 2y′/x + 2y/x² = 0","y″ + 2y′/x − 2y/x² = 0","y″ + (2/x)y′ − (2/x²)y = 0","y″ + (2/x)y′ + (2/x²)y = 0"],a:[0,2,3]},
+{t:"What is the y(x) of the given DE: x²y″ + 2xy′ − 2y = 0  Choose all correct answer/s.",type:"multi",w:2,o:["y(x) = C₁x + C₂/x²","y(x) = C₂/x² − C₁x","y(x) = C₁x − C₂/x²","y(x) = C₂/x² + C₁x","y(x) = C₁x + C₂/x"],a:[0,3]},
+{t:"What is the reduced form of the given DE: x²y″ + 3xy′ − 8y = 0  Choose all correct answer/s.",type:"multi",w:2,o:["y″ + 3y′/x + 8y/x² = 0","y″ + 3y′/x + (−8y/x²) = 0","y″ + 3y′/x − 8y/x² = 0","y″ + (3/x)y′ − (8/x²)y = 0","y″ + (3/x)y′ + (8/x²)y = 0"],a:[1,2,3]},
+{t:"What is the y(x) of the given DE: x²y″ + 3xy′ − 8y = 0  Choose all correct answer/s.",type:"multi",w:2,o:["y(x) = C₂/x² + C₁x⁴","y(x) = C₁x² + C₂/x⁴","y(x) = C₂/x² + C₁x²","y(x) = C₂/x⁴ + C₁x²","y(x) = C₁x² − C₂/x⁴"],a:[1,3]},
+{t:"Given the DE: x²y″ + 3xy′ − 8y = 0  What is y₂(x), if y₁(x) = x²? Choose all correct answer/s.",type:"multi",w:2,o:["−1/x⁴","1/x⁴","1/x⁴ + (0)x²","x⁴","1/x⁴ + (0)x⁴"],a:[1,2]},
+{t:"Given: y(x) = C₂/x² + C₁x. If y₁(x) = x, what should be the value of C₂ to get y₁(x)?",type:"radio",w:2,o:["1","0"],a:[1]},
+{t:"Given: y(x) = C₂/x⁴ + C₁x². If y₁(x) = x², what should be the value of C₁ to get y₁(x)?",type:"radio",w:2,o:["1","0"],a:[0]},
+{t:"What is the P(x) of the given DE: x²y″ + 2xy′ − 2y = 0",type:"radio",w:2,o:["2x","2/x","2xy′","2/x^2","2y′"],a:[1]}
+];
+var META={def:{limit:"10 mins",secs:600,method:"Highest grade",pass:"4.00 out of 5.00",grade:5},
+  dsa_lt1:{limit:"30 mins",secs:1800,method:"Last attempt",pass:"Not specified",grade:100},
+  ode_q1:{limit:"30 mins",secs:1800,method:"Last attempt",pass:"8.00 out of 10.00",grade:10},
+  ode_q2:{limit:"30 mins",secs:1800,method:"Last attempt",pass:"8.00 out of 10.00",grade:10}};
+function mt(k){return META[k]||META.def;}
+function tot(qs){return qs.reduce(function(a,q){return a+(q.w||1);},0);}
+function dropAns(i){var n=Q[i].lab.length,d=S.ans[i];return(d&&d.length===n)?d.slice():new Array(n).fill(-1);}
+function matchAns(i){var n=Q[i].frames.length,d=S.ans[i];return(d&&d.length===n)?d.slice():new Array(n).fill(-1);}
+var Q=PRE;
+var QS={pre:PRE,post:POST,pre4:PRE4,post4:POST4,pre5:PRE5,post5:POST5,ode_q1:ODE1,ode_q2:ODE2};
+var TITLES={pre:"Pretest: Module 3 - Discrete Probability Part 2",post:"Posttest: Module 3 - Discrete Probability Part 2",pre4:"Pretest: Module 4 - Sequences & Recursions",post4:"Posttest: Module 4 - Sequences & Recursions",pre5:"Pretest: Module 5 - Graphs & Trees",post5:"Posttest: Module 5 - Graphs & Trees",ode_q1:"Quiz (Higher Order Linear Homogeneous DE)",ode_q2:"Quiz (Homogeneous Linear Second - Order De Using The Method Of Reduction By Order)"};
+var TOTAL=600;
+var S={view:"course",k:null,open:{main:true,seq:false,graphs:false,final:false},
+  done:{pre:false,post:true,assign:false},scores:{pre:null,post:null},started:false,finished:false,timeUp:false,
+  cur:0,left:TOTAL,hide:false,confirm:false,score:0,
+  ans:PRE.map(function(q){return q.type==="text"?"":[];}),flag:PRE.map(function(){return false;})};
+var A={};
+var H={pre:[],post:[],pre4:[],post4:[],pre5:[],post5:[],ode_q1:[],ode_q2:[]};
+function saveAtt(){if(!S.k)return;A[S.k]={startedAt:S.startedAt,cur:S.cur,left:S.left,hide:S.hide,finished:S.finished,score:S.score,timeUp:S.timeUp,ans:S.ans,flag:S.flag};}
+function loadAtt(a){S.startedAt=a.startedAt;S.cur=a.cur;S.left=a.left;S.hide=a.hide;S.finished=a.finished;S.score=a.score;S.timeUp=a.timeUp;S.ans=a.ans;S.flag=a.flag;S.confirm=false;}
+function sc(k){return S.scores[k]==null?"":'<span><b>Score:</b>'+S.scores[k]+' / '+tot(QS[k])+'</span>';}
+var tick=null, root=document.getElementById("root");
+
+/* ---------------- helpers ---------------- */
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function fmt(s){return "0:"+String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");}
+function answered(i){if(Q[i].type==="match")return matchAns(i).some(function(x){return x>-1;});if(Q[i].type==="drop")return dropAns(i).some(function(x){return x>-1;});return Q[i].type==="text"?S.ans[i].trim()!=="":S.ans[i].length>0;}
+function correct(i){var q=Q[i];if(q.type==="match"){var m=matchAns(i);return m.every(function(x,k){return x===q.a[k];});}if(q.type==="drop"){var d=dropAns(i);return d.every(function(x,s){return x>-1&&q.o[x]===q.o[q.a[s]];});}
+  if(q.type==="text")return S.ans[i].trim()===q.a;
+  return S.ans[i].length===q.a.length&&q.a.every(function(x){return S.ans[i].indexOf(x)>-1;});}
+function toast(msg){var t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove("show");},2200);}
+function resetQuiz(){S.cur=0;S.left=TOTAL;S.hide=false;S.confirm=false;S.finished=false;S.started=false;
+  S.ans=Q.map(function(q){return q.type==="text"?"":[];});S.flag=Q.map(function(){return false;});}
+
+var CHEV='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6l4.5 4.5L12.5 6"/></svg>';
+var QUIZ_ICO='<svg class="ico" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="28" height="26" rx="5"/><path d="M15 12h10M15 17h10M15 22h10"/><circle cx="10" cy="12" r="1.2"/><circle cx="10" cy="17" r="1.2"/><circle cx="10" cy="22" r="1.2"/></svg>';
+var ASSIGN_ICO='<svg class="ico" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 3H9a3 3 0 0 0-3 3v22a3 3 0 0 0 3 3h16a3 3 0 0 0 3-3V11z"/><path d="M20 3v8h8"/><path d="M17 25v-9M13 19.5l4-4 4 4"/></svg>';
+
+/* ---------------- my courses ---------------- */
+var COURSES=[
+ {id:"ds2",code:"DS2 26-1",name:"DS2_26-1",note:"Discrete Probability Part 2"},
+ {id:"csam",code:"CSAM 211",name:"Ordinary Differential Equations 26-1",note:"Second and Higher Order Linear Homogeneous DE"},
+ {id:"dsa",code:"CCCS 104",name:"Data Structures and Algorithms 26-1",note:"Graphs, Searching, Sorting and Hashing"}
+];
+S.course="ds2";
+function renderHome(){
+  S.view="home";
+  root.innerHTML=
+  '<div class="card"><h2 class="qt" style="margin-top:0">My courses</h2><div class="cgrid">'+
+  COURSES.map(function(c){
+    if(c.locked)return '<button class="ccard locked" data-lock="1" type="button" aria-disabled="true" aria-label="'+esc(c.name)+' - not available yet"><span class="cblur"><span class="ccode">'+esc(c.code)+'</span><span class="cname">'+esc(c.name)+'</span><span class="cnote">'+esc(c.note)+'</span></span><span class="clock" aria-hidden="true"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5" fill="currentColor" fill-opacity=".12"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/><circle cx="12" cy="16" r="1.4" fill="currentColor"/></svg><span class="clt">Not available yet</span></span></button>';
+    return '<button class="ccard" data-c="'+c.id+'" type="button"><span class="ccode">'+esc(c.code)+'</span><span class="cname">'+esc(c.name)+'</span><span class="cnote">'+esc(c.note)+'</span></button>';
+  }).join("")+'</div></div>';
+  root.querySelectorAll("[data-lock]").forEach(function(b){b.onclick=function(){toast("This course is not available yet");};});
+  root.querySelectorAll("[data-c]").forEach(function(b){b.onclick=function(){S.course=b.dataset.c;S.view="course";renderCourse();window.scrollTo(0,0);};});
+  window.scrollTo(0,0);
+}
+function renderOther(){
+  var c=COURSES.filter(function(x){return x.id===S.course;})[0];
+  root.innerHTML=
+  '<button class="btn back" id="tohome" type="button">All courses</button>'+
+  '<div class="card"><div class="section-head" style="cursor:default"><span class="chev">'+CHEV+'</span><h2>'+esc(c.code+" "+c.name)+'</h2></div>'+
+  '<div class="empty" style="padding-left:56px">No activities have been added to this course yet.</div></div>';
+  $("tohome").onclick=renderHome;
+}
+
+/* ---------------- course page ---------------- */
+var SECTIONS=[
+ {id:"main",title:"Discrete Probability Part 2",items:[
+  {id:"pre",type:"quiz",quiz:"pre",title:"Pretest: Module 3 - Discrete Probability Part 2",dates:[["Opened","Wednesday, October 14, 2026, 8:00 AM"]],state:"none"},
+  {id:"post",type:"quiz",quiz:"post",title:"Posttest: Module 3 - Discrete Probability Part 2",dates:[["Opened","Monday, October 19, 2026, 12:00 PM"]],state:"mark"},
+  {id:"asg3",type:"assign",title:"Assignment: Module 3 - Discrete Probability Part 2",dates:[["Opened","Monday, October 19, 2026, 8:00 AM"],["Due","Thursday, October 22, 2026, 11:59 PM"]],state:"mark"}]},
+ {id:"seq",title:"Sequences & Recursions",items:[
+  {id:"pre4",type:"quiz",quiz:"pre4",title:"Pretest: Module 4 - Sequences & Recursions",dates:[["Opened","Monday, October 26, 2026, 8:00 AM"]],state:"todo"},
+  {id:"post4",type:"quiz",quiz:"post4",title:"Posttest: Module 4 - Sequences & Recursions",dates:[["Opened","Monday, October 26, 2026, 4:00 PM"]],state:"none"},
+  {id:"asg4",type:"assign",title:"Assignment: Module 4 - Sequences & Recursions",dates:[["Opened","Monday, October 26, 2026, 8:00 AM"],["Due","Thursday, October 29, 2026, 11:59 PM"]],state:"mark"}]},
+ {id:"graphs",title:"Graphs & Trees",items:[
+  {id:"pre5",type:"quiz",quiz:"pre5",title:"Pretest: Module 5 - Graphs & Trees",dates:[["Opens","Monday, November 9, 2026, 7:00 AM"]],state:"none"},
+  {id:"post5",type:"quiz",quiz:"post5",title:"Posttest: Module 5 - Graphs & Trees",dates:[["Opens","Monday, November 9, 2026, 1:00 PM"]],state:"none"}]},
+ {id:"final",title:"Final Project and Exam",items:[
+  {id:"fin",type:"assign",title:"CSAM 212 Final Project",dates:[["Opened","Monday, October 26, 2026, 8:00 AM"],["Due","Tuesday, December 1, 2026, 12:00 PM"]],state:"mark"}]}
+];
+S.open={main:true,seq:true,graphs:true,final:true};S.more={};
+
+var SECTIONS2=[
+ {id:"ode1",title:"Second and Higher Order Linear Homogeneous Differential Equation",
+  desc:["Introducing Higher Order Linear Homogenous DE","Homogeneous Linear Second - Order De Using The Method Of Reduction By Order"],items:[
+  {id:"ode_info1",type:"pdf",title:"Higher Order Linear Homogeneous DE (infosheet)",dates:[],state:"none"},
+  {id:"ode_rec1",type:"doc",title:"Higher Order Linear Homogeneous DE (Recorded Online Meeting)",dates:[],state:"none"},
+  {id:"ode_q1",type:"quiz",quiz:"ode_q1",title:"Quiz (Higher Order Linear Homogeneous DE)",dates:[["Opened","Tuesday, October 20, 2026, 8:00 AM"]],state:"todo"},
+  {id:"ode_info2",type:"pdf",title:"Homogeneous Linear Second - Order De Using The Method Of Reduction By Order (infosheet)",dates:[],state:"none"},
+  {id:"ode_q2",type:"quiz",quiz:"ode_q2",title:"Quiz (Homogeneous Linear Second - Order De Using The Method Of Reduction By Order)",dates:[["Opened","Tuesday, October 27, 2026, 1:00 PM"]],state:"none"},
+  {id:"ode_lt",type:"quiz",title:"Learning Task (Second and Higher Order DE)",dates:[["Opened","Tuesday, October 27, 2026, 1:00 PM"]],state:"none"}]},
+ {id:"ode2",title:"Systems of Ordinary Differential Equations with Constant Coefficients",
+  desc:["The Basic Theory of Systems of Linear Ordinary Differential Equations","Systems of Homogeneous Linear Ordinary Differential Equations with Constant Coefficients"],items:[]},
+ {id:"ode3",title:"Mathematical Modeling and Applications of Ordinary Differential Equation",items:[]},
+ {id:"ode4",title:"FINAL EXAM & PROJECT",
+  note:"<b>Analysis Report:</b> The analysis report is an evaluation of differential equations and their application in real-life. This should include proofs of claims and cited properly using ACM format. This will serve as the student\u2019s final exam and project.",items:[
+  {id:"ode_fin",type:"assign",title:"Final Project (Analysis Report)",dates:[["Opens","Monday, November 23, 2026, 8:00 AM"],["Due","Wednesday, December 2, 2026, 12:00 PM"]],state:"mark"}]},
+ {id:"ode5",title:"REMEDIAL EXAM",items:[]}
+];
+var SECTIONS3=[
+ {id:"dsa1",title:"Non-Linear Data Structure - Graph",items:[
+  {id:"dsa_v1",type:"doc",title:"Non-Linear Data Structure - Graph (recorded video)",dates:[],state:"none"},
+  {id:"dsa_q1",type:"quiz",quiz:"dsa_q1",title:"Non-Linear Data Structure - Graph ADT (Quiz)",dates:[["Opened","Monday, October 19, 2026, 8:00 AM"]],state:"none"},
+  {id:"dsa_lt1",type:"quiz",quiz:"dsa_lt1",title:"Learning Task (Non-Linear Data Structure - Graph)",dates:[["Opened","Wednesday, October 21, 2026, 8:00 AM"]],state:"none"}]},
+ {id:"dsa2",title:"Searching, Sorting and Hashing Techniques",items:[
+  {id:"dsa_v2",type:"doc",title:"Searching Techniques (recorded video)",dates:[],state:"none"},
+  {id:"dsa_q2",type:"quiz",quiz:"dsa_q2",title:"Searching Techniques (Quiz)",dates:[["Opened","Thursday, October 22, 2026, 10:00 AM"]],state:"none"},
+  {id:"dsa_lt2",type:"assign",title:"Learning Task (Searching)",dates:[["Opened","Wednesday, October 28, 2026, 7:00 AM"],["Due","Wednesday, November 4, 2026, 11:59 PM"]],state:"mark"},
+  {id:"dsa_v3",type:"doc",title:"Sorting (recorded video)",dates:[],state:"none"},
+  {id:"dsa_q3",type:"quiz",quiz:"dsa_q3",title:"Sorting (Quiz)",dates:[["Opens","Thursday, October 29, 2026, 10:00 AM"]],state:"none"}]},
+ {id:"dsa3",title:"FINAL EXAM and PROJECT in DSA",items:[
+  {id:"dsa_fp",type:"assign",title:"Final Project (Narrative Video)",dates:[["Opened","Thursday, October 22, 2026, 8:00 AM"],["Due","Friday, November 20, 2026, 11:59 PM"]],state:"mark"},
+  {id:"dsa_fe",type:"assign",title:"Final Exam (Narrative Video Documentation)",dates:[["Opened","Thursday, October 22, 2026, 8:00 AM"],["Due","Friday, November 20, 2026, 11:59 PM"]],state:"mark"}]}
+];
+var SECS={ds2:SECTIONS,csam:SECTIONS2,dsa:SECTIONS3};
+S.open.dsa1=true;S.open.dsa2=true;S.open.dsa3=true;
+S.done.dsa_q1=true;S.done.dsa_lt1=true;
+var FIG_K5='<svg viewBox="0 0 300 280" width="300" height="280" role="img" aria-label="Graph with 5 vertices where every vertex is connected to every other vertex" style="display:block;margin:14px 0 6px;max-width:100%;height:auto"><line x1="150" y1="22" x2="278" y2="115" stroke="#222" stroke-width="2.5"/><line x1="150" y1="22" x2="229" y2="256" stroke="#222" stroke-width="2.5"/><line x1="150" y1="22" x2="71" y2="256" stroke="#222" stroke-width="2.5"/><line x1="150" y1="22" x2="22" y2="115" stroke="#222" stroke-width="2.5"/><line x1="278" y1="115" x2="229" y2="256" stroke="#222" stroke-width="2.5"/><line x1="278" y1="115" x2="71" y2="256" stroke="#222" stroke-width="2.5"/><line x1="278" y1="115" x2="22" y2="115" stroke="#222" stroke-width="2.5"/><line x1="229" y1="256" x2="71" y2="256" stroke="#222" stroke-width="2.5"/><line x1="229" y1="256" x2="22" y2="115" stroke="#222" stroke-width="2.5"/><line x1="71" y1="256" x2="22" y2="115" stroke="#222" stroke-width="2.5"/><circle cx="150" cy="22" r="5" fill="#e53935"/><circle cx="278" cy="115" r="5" fill="#e53935"/><circle cx="229" cy="256" r="5" fill="#e53935"/><circle cx="71" cy="256" r="5" fill="#e53935"/><circle cx="22" cy="115" r="5" fill="#e53935"/></svg>';
+var FIG_UG='<svg viewBox="0 0 330 280" width="330" height="280" role="img" aria-label="Undirected graph with vertices 0 to 8 joined by plain lines" style="display:block;margin:14px 0 6px;max-width:100%;height:auto"><rect width="330" height="280" fill="#f4f4f4"/><line x1="68" y1="23" x2="220" y2="41" stroke="#333" stroke-width="1.4"/><line x1="68" y1="23" x2="22" y2="115" stroke="#333" stroke-width="1.4"/><line x1="22" y1="115" x2="146" y2="92" stroke="#333" stroke-width="1.4"/><line x1="22" y1="115" x2="164" y2="175" stroke="#333" stroke-width="1.4"/><line x1="42" y1="201" x2="164" y2="175" stroke="#333" stroke-width="1.4"/><line x1="164" y1="175" x2="220" y2="41" stroke="#333" stroke-width="1.4"/><line x1="164" y1="175" x2="190" y2="251" stroke="#333" stroke-width="1.4"/><line x1="220" y1="41" x2="274" y2="209" stroke="#333" stroke-width="1.4"/><line x1="220" y1="41" x2="304" y2="125" stroke="#333" stroke-width="1.4"/><line x1="304" y1="125" x2="274" y2="209" stroke="#333" stroke-width="1.4"/><circle cx="68" cy="23" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="68" y="27" font-size="12" font-weight="600" text-anchor="middle" fill="#111">0</text><circle cx="220" cy="41" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="220" y="45" font-size="12" font-weight="600" text-anchor="middle" fill="#111">1</text><circle cx="22" cy="115" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="22" y="119" font-size="12" font-weight="600" text-anchor="middle" fill="#111">2</text><circle cx="146" cy="92" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="146" y="96" font-size="12" font-weight="600" text-anchor="middle" fill="#111">3</text><circle cx="164" cy="175" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="164" y="179" font-size="12" font-weight="600" text-anchor="middle" fill="#111">4</text><circle cx="42" cy="201" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="42" y="205" font-size="12" font-weight="600" text-anchor="middle" fill="#111">5</text><circle cx="190" cy="251" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="190" y="255" font-size="12" font-weight="600" text-anchor="middle" fill="#111">6</text><circle cx="304" cy="125" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="304" y="129" font-size="12" font-weight="600" text-anchor="middle" fill="#111">7</text><circle cx="274" cy="209" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="274" y="213" font-size="12" font-weight="600" text-anchor="middle" fill="#111">8</text></svg>';
+QS.dsa_q1=[
+{t:"There are 5 vertices in the graph.",fig:FIG_K5,type:"radio",o:["True","False"],a:[0]},
+{t:"In Breadth-First Search of Graph, Queue data structure is used.",type:"radio",o:["True","False"],a:[0]},
+{t:"There are 15 edges in the graph.",fig:FIG_K5,type:"radio",o:["True","False"],a:[1]},
+{t:"Stack is used for Depth First Search of a Graph.",type:"radio",o:["True","False"],a:[0]},
+{t:"All graphs must have edges.",type:"radio",o:["True","False"],a:[0]},
+{t:"A directed graph with directed cycles is called a directed acyclic graph.",type:"radio",o:["True","False"],a:[1]},
+{t:"The graph below is an example of an undirected graph.",fig:FIG_UG,type:"radio",o:["True","False"],a:[0]},
+{t:"A graph is a collection of nodes, called edges and line segments called arcs or vertices that connect pair of the nodes",type:"radio",o:["True","False"],a:[1]},
+{t:"The path represents a sequence of vertices between the two edges.",type:"radio",o:["True","False"],a:[1]},
+{t:"The graph can be represented as an adjacency matrix using a 2D array.",type:"radio",o:["True","False"],a:[0]}
+];QS.dsa_lt1=[];QS.dsa_q2=[];QS.dsa_q3=[];
+TITLES.dsa_q1="Non-Linear Data Structure - Graph ADT (Quiz)";TITLES.dsa_lt1="Learning Task (Non-Linear Data Structure - Graph)";TITLES.dsa_q2="Searching Techniques (Quiz)";TITLES.dsa_q3="Sorting (Quiz)";
+H.dsa_q1=[];H.dsa_lt1=[];H.dsa_q2=[];H.dsa_q3=[];
+S.open.ode1=true;S.open.ode2=true;S.open.ode3=false;S.open.ode4=true;S.open.ode5=false;
+var PDF_ICO='<svg class="ico res" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 3H9a3 3 0 0 0-3 3v22a3 3 0 0 0 3 3h16a3 3 0 0 0 3-3V11z"/><path d="M20 3v8h8"/><path d="M11 24h12M11 19h12"/></svg>';
+var DOC_ICO='<svg class="ico res" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 3H9a3 3 0 0 0-3 3v22a3 3 0 0 0 3 3h16a3 3 0 0 0 3-3V11z"/><path d="M20 3v8h8"/><path d="M11 17h12M11 22h8"/></svg>';
+var LOCK_ICO='<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2h.5A1.5 1.5 0 0 1 13.5 8.5v5A1.5 1.5 0 0 1 12 15H4a1.5 1.5 0 0 1-1.5-1.5v-5A1.5 1.5 0 0 1 4 7zm1.5 0h4V5a2 2 0 0 0-4 0z"/></svg>';
+function stateHTML(it){
+  if(it.lock)return "";
+  if(S.done[it.id])return '<button class="done-pill" data-done="'+it.id+'" type="button" title="Click to undo">&#10003; Done '+CHEV.replace('width="16" height="16"','width="12" height="12"')+'</button>';
+  if(it.state==="mark")return '<button class="mark" data-done="'+it.id+'" type="button">Mark as done</button>';
+  if(it.state==="todo")return '<button class="todo" data-done="'+it.id+'" type="button">To do '+CHEV.replace('width="16" height="16"','width="10" height="10"')+'</button>';
+  return "";
+}
+function itemHTML(it){
+  var ico=it.type==="quiz"?QUIZ_ICO:it.type==="pdf"?PDF_ICO:it.type==="doc"?DOC_ICO:ASSIGN_ICO;
+  var dates=it.dates.map(function(d){return '<span><b>'+d[0]+':</b>'+d[1]+'</span>';}).join("");
+  if(it.quiz)dates+=sc(it.quiz);
+  var lock="";
+  if(it.lock){
+    var open=S.more[it.id];
+    lock='<div class="lock'+(open?" open":"")+'">'+LOCK_ICO+'<span class="lt">Not available unless: You achieve higher than a certain score in <b>'+esc(it.lock)+'</b></span>'+
+      (it.more?'<button class="sm" data-more="'+it.id+'" type="button">Show '+(open?"less":"more")+' '+CHEV.replace('width="16" height="16"','width="11" height="11"')+'</button>':'')+'</div>';
+  }
+  var attr=it.quiz?'data-quiz="'+it.quiz+'"':(it.lock?'':'data-soon="1"'+(it.type==="doc"||it.type==="pdf"?' data-msg="Material not available"':''));
+  return '<li class="act">'+ico+'<div class="main"><button class="name" '+attr+' type="button">'+esc(it.title)+'</button>'+
+    '<div class="dates">'+dates+'</div>'+lock+'</div><div class="state">'+stateHTML(it)+'</div></li>';
+}
+function renderCourse(){
+  var SEC=SECS[S.course];if(!SEC){renderOther();return;}
+  root.innerHTML=
+  '<button class="btn back" id="tohome" type="button">All courses</button>'+
+  SEC.map(function(s){
+    var body="";
+    if(S.open[s.id]){
+      if(s.desc)body+='<ul class="bul">'+s.desc.map(function(d){return '<li>'+esc(d)+'</li>';}).join("")+'</ul>';
+      if(s.note)body+='<p class="secnote">'+s.note+'</p>';
+      if(s.items.length)body+='<ul class="acts">'+s.items.map(itemHTML).join("")+'</ul>';
+      else if(!s.desc)body+='<div class="empty">No activities have been added to this section yet.</div>';
+    }
+    return '<div class="sec"><button class="section-head" data-sec="'+s.id+'" aria-expanded="'+S.open[s.id]+'" type="button"><span class="chev">'+CHEV+'</span><h2>'+esc(s.title)+'</h2></button>'+body+'</div>';
+  }).join("");
+  root.querySelectorAll("[data-sec]").forEach(function(b){b.onclick=function(){var k=b.dataset.sec;S.open[k]=!S.open[k];renderCourse();};});
+  root.querySelectorAll("[data-done]").forEach(function(b){b.onclick=function(){var k=b.dataset.done;S.done[k]=!S.done[k];renderCourse();};});
+  root.querySelectorAll("[data-more]").forEach(function(b){b.onclick=function(){var k=b.dataset.more;S.more[k]=!S.more[k];renderCourse();};});
+  root.querySelectorAll("[data-soon]").forEach(function(b){b.onclick=function(){toast(b.dataset.msg||"Activity not available");};});
+  root.querySelectorAll("[data-quiz]").forEach(function(b){b.onclick=function(){openQuiz(b.dataset.quiz);};});
+  $("tohome").onclick=renderHome;
+}
+
+/* ---------------- quiz ---------------- */
+var TOK=["11ddmgrbp6v","ipc1shoijq","1wboassvmfj","1gfplodx74t","wge2dyhaxt","q1pqflzlpm","10kq4gdy7fc","22xf4m3ia6x","1s6wgz5gjw","aux1qqcor1","293f531k9hf","1gynaiapxcd","25ujgc52jx8","2f8uhpb1xfb","1xetwturl5i","jp2490styc","14j6msvxtf5","2a4li8v8t91","hqfphvagmq","24csqk0qd56","5978o74inw","1uc30cem6rs","6gj1okqm0g","cfoyfrp8i3","4h7uao5mwa","1q84vnp8nl8","1j1vbq0priz","1aqvbbrohh0","mutj5m8hpa","xi4wufo4rb","1rz7kii9c41","25c5g57zdkf","vx04t3c71a","sfd4gbk7o5","x1rjgq3ejq","1u0bsb5647v","1wzlvo2ana2","25ocah29vo2","1ya04emjfin","13qucp08rah","1oa5t0i1eg","16szn1ryoql","1ug6n3raakj","1aiv8vl8ncv","15zh0tbq2ge","1olxr5t7uck","2fgt1k2wzyf","1gv6oy6a91p","xgb3s3gr0r","127pb5cnt3p"];
+var usedMem=[];
+function hash(str){var h1=0xdeadbeef,h2=0x41c6ce57;for(var i=0;i<str.length;i++){var ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+  h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+  return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);}
+function usedList(){try{var v=JSON.parse(localStorage.getItem("usedTokens")||"[]");return v.concat(usedMem);}catch(e){return usedMem;}}
+function markUsed(h){usedMem.push(h);try{var v=JSON.parse(localStorage.getItem("usedTokens")||"[]");v.push(h);localStorage.setItem("usedTokens",JSON.stringify(v));}catch(e){}}
+function openQuiz(key){
+  S.k=key;Q=QS[key];S.confirm=false;
+  window.scrollTo(0,0);
+  if(!Q.length){S.view="empty";renderEmpty();return;}
+  S.view="info";renderInfo();
+}
+function renderEmpty(){
+  root.innerHTML=
+  '<button class="btn back" id="back" type="button">Back to course</button>'+
+  '<div class="card"><h2 class="qt">'+esc(TITLES[S.k])+'</h2><p style="font-size:17px;margin:18px 0 6px">Nothing there.</p></div>';
+  $("back").onclick=function(){S.view="course";renderCourse();window.scrollTo(0,0);};
+}
+function renderToken(msg){
+  root.innerHTML=
+  '<div class="card info"><h2 class="qt">Enter access token</h2>'+
+  '<p style="font-size:15px;color:var(--muted)">Enter a token to open the course. Each token works one time only.</p>'+
+  '<form id="tf" class="tokrow"><input id="tok" class="tokin" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" aria-label="Access token">'+
+  '<button class="reattempt" style="margin:0" type="submit">Verify token</button></form>'+
+  '<p class="tokmsg" id="tm" role="alert">'+esc(msg)+'</p></div>';
+  $("tok").focus();
+  $("tf").onsubmit=function(e){
+    e.preventDefault();
+    var raw=$("tok").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
+    if(!raw){renderToken("Enter your token.");return;}
+    var h=hash(raw);
+    if(TOK.indexOf(h)<0){renderToken("Invalid token. Check it and try again.");return;}
+    if(usedList().indexOf(h)>-1){renderToken("This token was already used. Enter a new one.");return;}
+    markUsed(h);S.view="course";renderCourse();window.scrollTo(0,0);
+  };
+}
+function beginQuiz(key){
+  S.k=key;Q=QS[key];TOTAL=mt(key).secs;
+  var a=A[key];
+  if(a&&!a.finished){loadAtt(a);}else{resetQuiz();S.score=0;S.timeUp=false;S.startedAt=new Date();}
+  window.scrollTo(0,0);
+  S.view="quiz";S.started=true;startTimer();renderQuiz();
+}
+function startTimer(){
+  if(tick)return;
+  tick=setInterval(function(){
+    S.left--;
+    if(S.left<=0){S.left=0;finish(true);return;}
+    var t=$("time");if(t)t.textContent=fmt(S.left);
+    var tm=$("timer");if(tm)tm.classList.toggle("low",S.left<=60);
+  },1000);
+}
+function stopTimer(){clearInterval(tick);tick=null;}
+function leaveQuiz(){stopTimer();S.confirm=false;saveAtt();S.view="course";renderCourse();window.scrollTo(0,0);}
+
+function renderQuiz(){
+  var i=S.cur,q=Q[i],last=i===Q.length-1,body="";
+  if(q.type==="text"){
+    body='<div class="opt">Answer:<input class="txt" type="text" id="txt" value="'+esc(S.ans[i])+'"></div>';
+  }else if(q.type==="drop"){
+    var d=dropAns(i);
+    body='<div class="eq">'+q.lab.map(function(l,s){return '<span class="slot" data-s="'+s+'" tabindex="0" title="Click to remove">'+(d[s]>-1?esc(q.o[d[s]]):"")+'</span><span>'+l+'</span>';}).join("")+'</div>'+
+      '<div class="bank">'+q.o.map(function(o,k){return '<span class="tile'+(d.indexOf(k)>-1?" used":"")+'" draggable="true" data-t="'+k+'">'+esc(o)+'</span>';}).join("")+'</div>';
+  }else if(q.type==="match"){
+    body=matchBody(i);
+  }else{
+    body=q.o.map(function(o,k){
+      return '<label class="opt"><input type="'+(q.type==="radio"?"radio":"checkbox")+'" name="o" data-i="'+k+'"'+(S.ans[i].indexOf(k)>-1?" checked":"")+'>'+String.fromCharCode(97+k)+'. '+esc(o)+'</label>';
+    }).join("");
+  }
+  root.innerHTML=
+  '<button class="btn back" id="back" type="button">Back</button>'+
+  '<div class="card">'+
+   '<div class="timer'+(S.left<=60?" low":"")+'" id="timer"><span>&#9201; <b id="time">'+fmt(S.left)+'</b></span><button id="hide" type="button">Hide</button></div>'+
+   '<div class="qh"><h2 class="qt">Question '+(i+1)+'</h2>'+
+   '<button class="flag'+(S.flag[i]?" on":"")+'" id="flag" type="button">&#9873; '+(S.flag[i]?"Remove flag":"Flag question")+'</button></div>'+
+   '<div class="meta"><span id="status">'+(answered(i)?"Answer saved":"Not yet answered")+'</span><span>Marked out of '+(q.w||1).toFixed(2)+'</span></div>'+
+   '<div class="q"><p>'+esc(q.t)+'</p>'+(q.fig||"")+body+'</div>'+
+   '<div class="nav">'+(i>0?'<button class="btn ghost" id="prev" type="button">Previous page</button>':'<span></span>')+
+   '<button class="btn primary" id="next" type="button">'+(last?"Finish attempt ...":"Next page")+'</button></div>'+
+   '<div class="jump">'+Q.map(function(_,k){return '<button type="button" class="'+(answered(k)?"done":"")+' '+(k===i?"cur":"")+'" data-j="'+k+'" aria-label="Question '+(k+1)+'">'+(k+1)+'</button>';}).join("")+'</div>'+
+  '</div>'+(S.confirm?confirmHTML():"");
+
+  $("back").onclick=leaveQuiz;
+  $("hide").onclick=function(e){var t=$("time").parentNode,h=t.style.display==="none";t.style.display=h?"":"none";e.target.textContent=h?"Hide":"Show";};
+  $("flag").onclick=function(){S.flag[i]=!S.flag[i];renderQuiz();};
+  var p=$("prev");if(p)p.onclick=function(){S.cur--;renderQuiz();};
+  $("next").onclick=function(){if(last){S.view="summary";renderSummary();window.scrollTo(0,0);}else{S.cur++;renderQuiz();}};
+  root.querySelectorAll("[data-j]").forEach(function(b){b.onclick=function(){S.cur=+b.dataset.j;renderQuiz();};});
+  root.querySelectorAll("input[name=o]").forEach(function(el){
+    el.onchange=function(){
+      var k=+el.dataset.i;
+      if(q.type==="radio")S.ans[i]=[k];
+      else S.ans[i]=el.checked?S.ans[i].concat([k]):S.ans[i].filter(function(x){return x!==k;});
+      $("status").textContent="Answer saved";refreshJump();
+    };
+  });
+  if(q.type==="drop"){
+    var put=function(k,s){var d=dropAns(i),o=d.indexOf(k);if(o>-1)d[o]=-1;d[s]=k;S.ans[i]=d;renderQuiz();};
+    root.querySelectorAll(".tile").forEach(function(el){
+      el.onclick=function(){var d=dropAns(i),s=d.indexOf(-1);if(s>-1)put(+el.dataset.t,s);};
+      el.ondragstart=function(e){e.dataTransfer.setData("text/plain",el.dataset.t);};
+    });
+    root.querySelectorAll(".slot").forEach(function(el){
+      el.onclick=function(){var d=dropAns(i);d[+el.dataset.s]=-1;S.ans[i]=d;renderQuiz();};
+      el.ondragover=function(e){e.preventDefault();el.classList.add("over");};
+      el.ondragleave=function(){el.classList.remove("over");};
+      el.ondrop=function(e){e.preventDefault();var k=parseInt(e.dataTransfer.getData("text/plain"),10);if(!isNaN(k))put(k,+el.dataset.s);};
+    });
+  }
+  if(q.type==="match"){root.querySelectorAll("select[data-m]").forEach(function(el){el.onchange=function(){var d=matchAns(i);d[+el.dataset.m]=+el.value;S.ans[i]=d;$("status").textContent=answered(i)?"Answer saved":"Not yet answered";refreshJump();};});}
+  var t=$("txt");if(t)t.oninput=function(){S.ans[i]=t.value;$("status").textContent=answered(i)?"Answer saved":"Not yet answered";refreshJump();};
+  if(S.confirm){$("cancel").onclick=function(){S.confirm=false;renderQuiz();};$("ok").onclick=function(){finish(false);};$("ok").focus();}
+}
+function renderSummary(){
+  var rows=Q.map(function(_,i){
+    var ok=answered(i);
+    return '<tr><td><a href="#" data-q="'+i+'">'+(i+1)+'</a>'+(S.flag[i]?'<span class="fm">&#9873; Flagged</span>':'')+'</td>'+
+      '<td class="'+(ok?"rec":"norec")+'">'+(ok?"Answer saved":"Not yet answered")+'</td></tr>';
+  }).join("");
+  var n=Q.filter(function(_,i){return answered(i);}).length;
+  root.innerHTML=
+  '<button class="btn back" id="back" type="button">Back</button>'+
+  '<div class="card"><div class="timer'+(S.left<=60?" low":"")+'" id="timer"><span>&#9201; <b id="time">'+fmt(S.left)+'</b></span><button id="hide" type="button">Hide</button></div>'+
+  '<h2 class="qt">'+esc(TITLES[S.k])+'</h2><h3 class="sum">Summary of attempt</h3>'+
+  '<div class="tw"><table class="st"><thead><tr><th>Question</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+  '<p class="cnt">'+n+' of '+Q.length+' answered</p>'+
+  '<div class="sc"><button class="btn ghost" id="ret" type="button">Return to attempt</button>'+
+  '<button class="btn primary" id="sub" type="button">Submit all and finish</button></div></div>'+(S.confirm?confirmHTML():"");
+  $("back").onclick=leaveQuiz;
+  $("hide").onclick=function(e){var t=$("time").parentNode,h=t.style.display==="none";t.style.display=h?"":"none";e.target.textContent=h?"Hide":"Show";};
+  $("ret").onclick=function(){S.cur=Q.length-1;S.view="quiz";renderQuiz();window.scrollTo(0,0);};
+  $("sub").onclick=function(){S.confirm=true;renderSummary();};
+  root.querySelectorAll("a[data-q]").forEach(function(a){a.onclick=function(e){e.preventDefault();S.cur=+a.dataset.q;S.view="quiz";renderQuiz();window.scrollTo(0,0);};});
+  if(S.confirm){$("cancel").onclick=function(){S.confirm=false;renderSummary();};$("ok").onclick=function(){finish(false);};$("ok").focus();}
+}
+function matchBody(i){var q=Q[i],d=matchAns(i);
+  return '<div class="mgrid">'+q.frames.map(function(f,k){
+    return '<div class="mrow"><div class="mfig">'+f+'</div><select class="msel" data-m="'+k+'" aria-label="Frame '+(k+1)+'"><option value="-1">Choose...</option>'+
+    q.o.map(function(o,j){return '<option value="'+j+'"'+(d[k]===j?' selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select></div>';}).join('')+'</div>';}
+function refreshJump(){root.querySelectorAll("[data-j]").forEach(function(b){b.classList.toggle("done",answered(+b.dataset.j));});}
+function confirmHTML(){
+  var left=Q.filter(function(_,k){return !answered(k);}).length;
+  return '<div class="overlay"><div class="dialog" role="dialog" aria-modal="true"><h3>Submit all and finish</h3>'+
+  '<p>You will not be able to change your answers after submitting.'+(left?' You have '+left+' unanswered question'+(left>1?"s":"")+'.':"")+'</p>'+
+  '<div class="row"><button class="btn ghost" id="cancel" type="button">Cancel</button><button class="btn primary" id="ok" type="button">Submit all and finish</button></div></div></div>';
+}
+function finish(timeUp){
+  stopTimer();S.confirm=false;S.finished=true;S.done[S.k]=true;
+  S.score=Q.reduce(function(s,q,i){return s+(correct(i)?(q.w||1):0);},0);
+  S.scores[S.k]=S.score;S.timeUp=!!timeUp;saveAtt();saveAttemptDB();
+  H[S.k].push({score:S.score,ans:JSON.parse(JSON.stringify(S.ans)),started:S.startedAt,completed:new Date(),secs:TOTAL-S.left});
+  S.view="review";renderReview();window.scrollTo(0,0);
+}
+function show(i){
+  var q=Q[i],a=S.ans[i];
+  if(!answered(i))return "No answer";
+  if(q.type==="match")return matchAns(i).map(function(x){return x>-1?q.o[x]:"-";}).join(", ");
+  if(q.type==="text")return a;
+  if(q.type==="drop")return dropAns(i).map(function(x){return x>-1?q.o[x]:"(blank)";}).join(", ");
+  return a.slice().sort().map(function(k){return q.o[k];}).join(", ");
+}
+function right(i){var q=Q[i];if(q.type==="match")return q.a.map(function(x){return q.o[x];}).join(", ");if(q.type==="drop")return q.a.map(function(x){return q.o[x];}).join(", ");return q.type==="text"?q.a:q.a.map(function(k){return q.o[k];}).join(" or ");}
+function dt(d){return d.toLocaleString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"}).replace(" at ",", ");}
+function renderInfo(){
+  var k=S.k,list=H[k];
+  var btn=(A[k]&&!A[k].finished)?"Continue your attempt":(list.length?"Re-attempt quiz":"Attempt quiz");
+  var atts=list.map(function(h,n){
+    return '<div class="attempt"><h3>Attempt '+(n+1)+'</h3><div class="chips">'+
+    '<div class="chip"><small>Status</small>Finished</div>'+
+    '<div class="chip"><small>Started</small>'+dt(h.started)+'</div>'+
+    '<div class="chip"><small>Completed</small>'+dt(h.completed)+'</div>'+
+    '<div class="chip"><small>Duration</small>'+Math.floor(h.secs/60)+' mins '+(h.secs%60)+' secs</div></div>'+
+    '<p class="np"><a href="#" class="flink" data-rv="'+n+'">Review</a></p></div>';
+  }).join("");
+  root.innerHTML=
+  '<button class="btn back" id="back" type="button">Back to course</button>'+
+  '<div class="card info"><button class="reattempt" id="re" type="button" style="margin-bottom:12px;display:block">'+btn+'</button>'+
+  '<button class="reattempt viewans" id="va" type="button">View answers</button>'+
+  '<p>Time limit: '+mt(k).limit+'</p><p>Grading method: '+mt(k).method+'</p><p>Grade to pass: '+mt(k).pass+'</p>'+
+  (list.length?'<h2 class="yat">Your attempts</h2>'+atts:'')+'</div>';
+  $("back").onclick=function(){S.view="course";renderCourse();window.scrollTo(0,0);};
+  $("re").onclick=function(){
+    var cont=A[k]&&!A[k].finished;
+    var ov=document.createElement("div");ov.className="overlay";ov.id="atov";
+    ov.innerHTML='<div class="dialog" role="dialog" aria-modal="true"><h3>'+(cont?"Continue your attempt?":"Are you sure you want to attempt this quiz?")+'</h3>'+
+      (cont?'<p>Your timer will keep running from where you left off.</p>':
+      '<p>This quiz has a time limit of <b>'+mt(k).limit+'</b> and <b>'+Q.length+' question'+(Q.length>1?"s":"")+'</b>. The timer starts as soon as you begin and cannot be paused. When time is up, your attempt is submitted automatically.</p>'+
+      '<p style="font-size:14px;color:var(--muted)">Grading method: '+mt(k).method+'. Make sure you are ready before you start.</p>')+
+      '<div class="row"><button class="btn ghost" id="atno" type="button">Cancel</button><button class="btn primary" id="atyes" type="button">'+(cont?"Continue":"Start attempt")+'</button></div></div>';
+    document.body.appendChild(ov);
+    $("atyes").focus();
+    $("atno").onclick=function(){ov.remove();};
+    ov.onclick=function(e){if(e.target===ov)ov.remove();};
+    $("atyes").onclick=function(){ov.remove();if(A[k]&&A[k].finished)A[k]=null;beginQuiz(k);};
+  };
+  $("va").onclick=function(){S.view="answers";renderAnswers();window.scrollTo(0,0);};
+  root.querySelectorAll("[data-rv]").forEach(function(a){a.onclick=function(e){e.preventDefault();S.view="review";renderReview(+a.dataset.rv);window.scrollTo(0,0);};});
+}
+function ordNote(){return '<div class="ordnote"><b>Note:</b> The order of the questions and answer choices in your actual quiz may be different from what you see here. Always check the <b>actual answer text</b>, not the letter (a, b, c&hellip;).</div>';}
+function searchBox(){return '<div class="srch"><input id="qs" type="search" placeholder="Search question..." aria-label="Search questions" autocomplete="off"><span id="qc" class="qc"></span></div><p id="qn" class="qn" style="display:none">No matching questions.</p>';}
+function bindSearch(){
+  var inp=$("qs");if(!inp)return;
+  var rows=root.querySelectorAll(".rq");
+  var hints=["Search question...","Type a keyword to find a question"];
+  var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!reduce){
+    var hi=0,ci=0,del=false,wait=0;
+    var tm=setInterval(function(){
+      if(!document.body.contains(inp)){clearInterval(tm);return;}
+      if(document.activeElement===inp||inp.value){inp.placeholder="Search question...";return;}
+      if(wait>0){wait--;return;}
+      var h=hints[hi];
+      if(!del){ci++;inp.placeholder=h.slice(0,ci)+"\u258f";if(ci>=h.length){del=true;wait=18;}}
+      else{ci-=2;if(ci<=0){ci=0;del=false;hi=(hi+1)%hints.length;inp.placeholder="\u258f";}else inp.placeholder=h.slice(0,ci)+"\u258f";}
+    },60);
+  }else inp.placeholder="Search question...";
+  inp.oninput=function(){
+    var v=inp.value.trim().toLowerCase(),n=0;
+    rows.forEach(function(r){var qp=r.querySelector(".rbody p"),m=!v||(qp&&qp.textContent.toLowerCase().indexOf(v)>-1);r.style.display=m?"":"none";if(m)n++;});
+    $("qn").style.display=(v&&!n)?"":"none";
+    $("qc").textContent=v?n+" of "+rows.length:"";
+  };
+}
+function revBody(q,i){
+  var a=S.ans[i],h="";
+  if(q.type==="match"){
+    var m=(a&&a.length===q.frames.length)?a:q.frames.map(function(){return -1;});
+    return '<div class="mgrid">'+q.frames.map(function(f,k){var ok=m[k]===q.a[k];
+      return '<div class="mrow"><div class="mfig">'+f+'</div><div class="ro '+(ok?'right':(m[k]>-1?'wrong':''))+'" style="margin:0">'+(m[k]>-1?'Your answer: '+esc(q.o[m[k]])+' ':'')+'<span class="rk">&#10003; Correct: '+esc(q.o[q.a[k]])+'</span></div></div>';}).join('')+'</div>';
+  }
+  if(q.type==="text"){
+    var ok=a.trim()===q.a;
+    return '<div class="opt ro'+(ok?' right':(a.trim()?' wrong':''))+'">Answer:<input class="txt" type="text" disabled value="'+esc(a)+'"></div>'+
+      '<div class="ro right"><span class="rk">&#10003;</span>Correct answer: '+esc(q.a)+'</div>';
+  }
+  if(q.type==="drop"){
+    return '<div class="eq">'+q.lab.map(function(l,s2){
+      return '<span class="slot gok">'+esc(q.o[q.a[s2]])+'</span><span>'+l+'</span>';}).join("")+'</div>';
+  }
+  var isR=q.type==="radio";
+  h=q.o.map(function(o,k){
+    var sel=a.indexOf(k)>-1,cor=q.a.indexOf(k)>-1;
+    var cls=cor?' right':(sel?' wrong':'');
+    return '<div class="ro'+cls+'"><span class="tg '+(isR?"rad":"chk")+(cor?" on":(sel?" bad":""))+'" aria-hidden="true"></span>'+String.fromCharCode(97+k)+'. '+esc(o)+
+      (cor?'<span class="rk">&#10003; Correct</span>':(sel?'<span class="rk">&#10007; Your answer</span>':''))+'</div>';
+  }).join("");
+  return h;
+}
+function renderAnswers(){
+  var old=S.ans;S.ans=Q.map(function(q){return q.type==="text"?"":[];});
+  var qs=Q.map(function(q,i){
+    return '<div class="rq"><div class="rinfo"><div class="rn">Question <b>'+(i+1)+'</b></div>'+
+      '<div class="rm">Marked out of '+(q.w||1).toFixed(2)+'</div></div>'+
+      '<div class="rbody"><p>'+esc(q.t)+'</p>'+(q.fig||"")+revBody(q,i)+'</div></div>';
+  }).join("");
+  S.ans=old;
+  root.innerHTML=
+  '<button class="btn back" id="back" type="button">Back</button>'+
+  '<div class="card"><h2 class="qt">'+esc(TITLES[S.k])+'</h2><h3 class="sum">Answers</h3>'+ordNote()+searchBox()+qs+
+  '<p style="margin-top:18px"><a href="#" id="fin" class="flink">Finish review</a></p></div>';
+  $("back").onclick=function(){S.view="info";renderInfo();window.scrollTo(0,0);};
+  $("fin").onclick=function(e){e.preventDefault();S.view="info";renderInfo();window.scrollTo(0,0);};
+  bindSearch();
+}
+function renderReview(idx){
+  if(idx===undefined)idx=H[S.k].length-1;
+  var h=H[S.k][idx],n=tot(Q),G=mt(S.k).grade,sc=h.score,old=S.ans;S.ans=h.ans;
+  var rows=[["Started on",dt(h.started)],["State","Finished"],["Completed on",dt(h.completed)],
+    ["Time taken",Math.floor(h.secs/60)+" mins "+(h.secs%60)+" secs"],
+    ["Marks",sc.toFixed(2)+"/"+n.toFixed(2)],["Grade",(sc/n*G).toFixed(2)+" out of "+G.toFixed(2)+" ("+Math.round(sc/n*100)+"%)"]];
+  var qs=Q.map(function(q,i){
+    var ok=correct(i);
+    return '<div class="rq"><div class="rinfo"><div class="rn">Question <b>'+(i+1)+'</b></div>'+
+      '<div class="rs">'+(ok?"Correct":(answered(i)?"Incorrect":"Not answered"))+'</div>'+
+      '<div class="rm">Mark '+(ok?(q.w||1):0).toFixed(2)+' out of '+(q.w||1).toFixed(2)+'</div></div>'+
+      '<div class="rbody"><p>'+esc(q.t)+'</p>'+(q.fig||"")+revBody(q,i)+'</div></div>';
+  }).join("");
+  root.innerHTML=
+  '<button class="btn back" id="back" type="button">Back</button>'+
+  '<div class="card"><h2 class="qt">'+esc(TITLES[S.k])+'</h2><h3 class="sum">Review of attempt '+(idx+1)+'</h3>'+(S.ans=old,"")+
+  '<table class="rt">'+rows.map(function(r){return '<tr><th>'+r[0]+'</th><td>'+r[1]+'</td></tr>';}).join("")+'</table>'+
+  ordNote()+searchBox()+qs+'<p style="margin-top:18px"><a href="#" id="fin" class="flink">Finish review</a></p></div>';
+  $("back").onclick=function(){S.view="info";renderInfo();window.scrollTo(0,0);};
+  $("fin").onclick=function(e){e.preventDefault();S.view="info";renderInfo();window.scrollTo(0,0);};
+  bindSearch();
+}
+function renderResult(){
+  var used=TOTAL-S.left;
+  root.innerHTML=
+  '<button class="btn back" id="back" type="button">Back to course</button>'+
+  '<div class="card"><h2 class="qt">Attempt finished</h2>'+
+  (S.timeUp?'<p>Time is up. Your attempt was submitted automatically.</p>':'')+
+  '<div class="meta"><span>'+TITLES[S.k]+'</span><span>Time taken: '+Math.floor(used/60)+' min '+(used%60)+' secs</span></div>'+
+  '<p class="score">'+S.score+' / '+tot(Q)+' <span style="font-size:18px;color:var(--muted)">('+Math.round(S.score/tot(Q)*100)+'%)</span></p>'+
+  '<div class="rev">'+Q.map(function(q,i){var ok=correct(i);
+    return '<div class="it '+(ok?"ok":"no")+'"><span class="tag">Question '+(i+1)+' &middot; '+(ok?"Correct":"Incorrect")+'</span>'+
+    '<p>'+esc(q.t)+'</p><p><b>Your answer:</b> '+esc(show(i))+'</p>'+(ok?"":'<p><b>Correct answer:</b> '+esc(right(i))+'</p>')+'</div>';}).join("")+'</div>'+
+  '<div class="nav"><button class="btn ghost" id="retake" type="button">Retake quiz</button><button class="btn primary" id="course" type="button">Return to course</button></div></div>';
+  $("back").onclick=function(){S.view="course";renderCourse();window.scrollTo(0,0);};
+  $("course").onclick=$("back").onclick;
+  $("retake").onclick=function(){A[S.k]=null;beginQuiz(S.k);};
+}
+
+
+/* ---------- Learning Task (Graph): figures ---------- */
+function arr(p,q,rs,re,col){var dx=q[0]-p[0],dy=q[1]-p[1],L=Math.sqrt(dx*dx+dy*dy),ux=dx/L,uy=dy/L,
+  sx=p[0]+ux*rs,sy=p[1]+uy*rs,ex=q[0]-ux*re,ey=q[1]-uy*re,bx=ex-ux*11,by=ey-uy*11,nx=-uy*5,ny=ux*5;
+  return '<line x1="'+sx.toFixed(1)+'" y1="'+sy.toFixed(1)+'" x2="'+bx.toFixed(1)+'" y2="'+by.toFixed(1)+'" stroke="'+col+'" stroke-width="1.6"/><polygon points="'+ex.toFixed(1)+','+ey.toFixed(1)+' '+(bx+nx).toFixed(1)+','+(by+ny).toFixed(1)+' '+(bx-nx).toFixed(1)+','+(by-ny).toFixed(1)+'" fill="'+col+'"/>';}
+function dotFig(P,E,w,h,lab){
+  var s='<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" role="img" aria-label="'+lab+'" style="display:block;margin:14px 0 6px;max-width:100%;height:auto">';
+  E.forEach(function(e){s+=arr(P[e[0]],P[e[1]],6,7,'#222');});
+  Object.keys(P).forEach(function(k){var p=P[k];s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="5" fill="#111"/><text x="'+(p[0]+p[2])+'" y="'+(p[1]+p[3])+'" font-size="15" text-anchor="middle" fill="#222">'+k+'</text>';});
+  return s+'</svg>';}
+function circFig(P,E,w,h,lab,undirected,fill){
+  var s='<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" role="img" aria-label="'+lab+'" style="display:block;margin:14px 0 6px;max-width:100%;height:auto">';
+  E.forEach(function(e){if(undirected){var a=P[e[0]],b=P[e[1]];s+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="#222" stroke-width="2.4"/>';}else s+=arr(P[e[0]],P[e[1]],17,18,'#222');});
+  Object.keys(P).forEach(function(k){var p=P[k];s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="17" fill="'+(fill||'#fff')+'" stroke="#222" stroke-width="2"/><text x="'+p[0]+'" y="'+(p[1]+5)+'" font-size="15" font-weight="600" text-anchor="middle" fill="#222">'+k+'</text>';});
+  if(undirected)E.forEach(function(e){if(e[2]!=null){var a=P[e[0]],b=P[e[1]];s+='<text x="'+((a[0]+b[0])/2+e[3])+'" y="'+((a[1]+b[1])/2+e[4])+'" font-size="15" fill="#1e88e5" font-weight="600" text-anchor="middle">'+e[2]+'</text>';}});
+  return s+'</svg>';}
+
+var G1=dotFig({a:[40,110,-14,4],b:[140,24,0,-10],c:[240,110,0,-12],d:[140,200,0,22],e:[400,110,14,4],f:[400,260,14,18],g:[40,260,-14,18]},
+  [['a','b'],['c','b'],['a','d'],['d','c'],['e','c'],['f','e'],['g','f'],['g','a']],440,290,'Directed graph with vertices a to g');
+var G2=dotFig({a:[150,24,16,-4],b:[30,100,-14,4],e:[270,100,14,4],c:[70,225,-14,16],d:[230,225,14,16]},
+  [['b','a'],['a','e'],['e','d'],['d','c'],['b','c']],300,260,'Directed pentagon graph with vertices a to e');
+var TOPO1=circFig({1:[30,110],2:[120,40],3:[120,180],4:[240,110],5:[330,40],6:[330,180]},
+  [[1,2],[1,3],[2,4],[2,5],[3,4],[3,6],[4,5],[4,6]],360,220,'Directed acyclic graph with vertices 1 to 6');
+var TOPO2=circFig({A:[40,30],B:[240,30],C:[40,150],D:[240,150],E:[140,265]},
+  [['A','B'],['A','C'],['A','D'],['B','C'],['B','D'],['C','E'],['D','E']],280,295,'Directed acyclic graph with vertices A to E');
+var PQRS=circFig({P:[40,30],Q:[240,30],R:[40,150],S:[240,150]},
+  [['P','Q'],['P','R'],['R','Q'],['S','Q'],['S','R']],280,190,'Directed graph with vertices P, Q, R, S');
+var WG=circFig({A:[40,85],B:[160,30],C:[160,140],D:[280,85]},
+  [['A','B',2,-14,-8],['A','C',3,-14,18],['B','D',2,14,-8],['C','D',6,14,18]],320,175,'Weighted undirected graph',true,'#8fd3ee');
+function cell(v,b){return '<td style="border:1px solid #9db4e0;width:48px;height:36px;text-align:center;'+(b?'background:#fff3c4;font-weight:700;border-style:dashed':'')+'">'+v+'</td>';}
+var MATFIG=WG+'<table style="border-collapse:collapse;margin:8px 0 4px;font-size:15px"><tr><td></td><th style="width:48px">A</th><th>B</th><th>C</th><th>D</th></tr>'+
+  '<tr><th>A</th>'+cell(0)+cell(2)+cell(3)+cell(0)+'</tr>'+
+  '<tr><th>B</th>'+cell(2)+cell(0)+cell(0)+cell('&#9312;',1)+'</tr>'+
+  '<tr><th>C</th>'+cell('&#9313;',1)+cell(0)+cell(0)+cell(6)+'</tr>'+
+  '<tr><th>D</th>'+cell(0)+cell(2)+cell('&#9314;',1)+cell(0)+'</tr></table>';
+function alRow(items){return '<div style="display:flex;align-items:center;gap:8px;margin:6px 0">'+items.map(function(x,k){var b=typeof x==="string";
+  return (k?'<span style="color:#00acc1">&rarr;</span>':'')+'<span style="min-width:42px;height:34px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #9db4e0;border-radius:4px;font-weight:600;'+(b?'background:#fff3c4;border-style:dashed':'background:#eaf0fb')+'">'+(b?x:x)+'</span>';}).join('')+'</div>';}
+var ALFIG='<div style="margin:12px 0 4px">'+alRow([0,1,2,'&#9312;'])+alRow([1,0,'&#9313;'])+alRow([2,0,'&#9314;'])+alRow([3,'&#9315;'])+'</div>';
+
+var UP={A:[30,26],B:[130,26],C:[230,26],D:[30,114],E:[130,114],F:[230,114],G:[305,70]};
+var UE=[["A","B"],["B","C"],["A","D"],["A","E"],["B","E"],["C","E"],["C","F"],["C","G"],["D","E"],["E","F"],["F","G"]];
+function gFrame(green,dark,tree,big){
+  var s='<svg viewBox="0 0 335 140" role="img" aria-label="Graph traversal frame"'+(big?' style="width:330px;max-width:100%;height:auto;border:0;background:none;margin-top:12px"':'')+'>';
+  UE.forEach(function(e){var a=UP[e[0]],b=UP[e[1]];
+    var t=tree.some(function(x){return x===e[0]+e[1]||x===e[1]+e[0];});
+    s+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="'+(t?'#3f9a0b':'#5b5594')+'" stroke-width="'+(t?4:1.4)+'"/>';});
+  Object.keys(UP).forEach(function(k){var p=UP[k],f=dark.indexOf(k)>-1?'#22202e':(green.indexOf(k)>-1?'#4c9a0a':'#fff');
+    s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="11" fill="'+f+'" stroke="#3b3680" stroke-width="1.5"/><text x="'+p[0]+'" y="'+(p[1]+4)+'" font-size="12" font-weight="700" text-anchor="middle" fill="#d81b60">'+k+'</text>';});
+  return s+'</svg>';}
+var T_ALL=["AB","BC","CE","ED","EF","FG"];
+var DS=[["A","",[]],["AB","",["AB"]],["ABC","",["AB","BC"]],["ABCE","",["AB","BC","CE"]],["ABCED","",["AB","BC","CE","ED"]],
+ ["ABCE","D",["AB","BC","CE","ED"]],["ABCEF","D",["AB","BC","CE","ED","EF"]],["ABCEFG","D",T_ALL],["ABCEF","DG",T_ALL],["ABCE","DGF",T_ALL],
+ ["ABC","DGFE",T_ALL],["AB","DGFEC",T_ALL],["A","DGFECB",T_ALL],["","DGFECBA",T_ALL]];
+var DORD=[14,12,7,8,6,3,11,13,10,9,2,5,4,1];
+var BS=[["A","",[]],["ABDE","",["AB","AD","AE"]],["ABCDEF","",["AB","AD","AE","CE","EF"]],["ABCDEFG","",["AB","AD","AE","CE","EF","CG"]]];
+var BORD=[3,2,1,4];
+function nums(n){var r=[];for(var i=1;i<=n;i++)r.push(String(i));return r;}
+
+QS.dsa_lt1=[
+{t:"Complete the adjacency list below (drag the numbers into the boxes, or click a number to place it):",type:"drop",w:8,fig:ALFIG,lab:["\u2190 \u2460 (row 0)","\u2190 \u2461 (row 1)","\u2190 \u2462 (row 2)","\u2190 \u2463 (row 3)"],o:["0","2","3","1"],a:[2,1,3,0]},
+{t:"Given the graph above, what is the outdegree of vertex c:",fig:G1,type:"text",w:2,a:"1"},
+{t:"Given the graph above, what is the outdegree of vertex a:",fig:G2,type:"text",w:2,a:"1"},
+{t:"Given the graph above, what is the degree of vertex b:",fig:G2,type:"text",w:2,a:"2"},
+{t:"Traverse the graph using DFS. Match each frame to its step number:",fig:gFrame("","",[],true).replace('<svg','<svg').replace(/#22202e|#4c9a0a/g,'#fff'),type:"match",w:14,o:nums(14),
+  frames:DORD.map(function(n){var d=DS[n-1];return gFrame(d[0],d[1],d[2]);}),a:DORD.map(function(n){return n-1;})},
+{t:"Given the graph above, what is the indegree of vertex a:",fig:G1,type:"text",w:2,a:"1"},
+{t:"Given the graph above, what is the outdegree of vertex e:",fig:G1,type:"text",w:2,a:"1"},
+{t:"Given the graph above, what is the degree of vertex a:",fig:G1,type:"text",w:2,a:"3"},
+{t:"Given the graph above, what is the degree of vertex d:",fig:G1,type:"text",w:2,a:"2"},
+{t:"Given the graph above, what is the outdegree of vertex e:",fig:G2,type:"text",w:2,a:"1"},
+{t:"Complete the adjacency matrix of the corresponding graph below (drag the numbers into the boxes, or click a number to place it):",fig:MATFIG,type:"drop",w:6,lab:["\u2190 \u2460 (B, D)","\u2190 \u2461 (C, A)","\u2190 \u2462 (D, C)"],o:["2","6","3"],a:[0,2,1]},
+{t:"Find the topological sort for the given graph:",fig:TOPO1,type:"multi",w:2,o:["1 3 2 4 5 6","1 2 3 4 5 6","1 3 2 5 4 6","1 3 2 4 6 5","1 2 3 4 6 5"],a:[0,1,3,4]},
+{t:"Find the topological sort for the given graph:",fig:TOPO2,type:"multi",w:2,o:["A B D C E","A B C D E","A D B E C","A D B C E","A B C E D"],a:[0,1]},
+{t:"Given the graph above, what is the outdegree of vertex g:",fig:G1,type:"text",w:2,a:"2"},
+{t:"Given the graph above, what is the outdegree of vertex c:",fig:G2,type:"text",w:2,a:"0"},
+{t:"Given the graph above, what is the degree of vertex f:",fig:G1,type:"text",w:2,a:"2"},
+{t:"Which of the following is/are TRUE given the graph below:",fig:PQRS,type:"multi",w:2,o:["Both PSRQ and SPRQ are topological orderings.","PSRQ is the only topological ordering.","The graph does not have any topological ordering.","Both PQRS and SRPQ are topological orderings."],a:[0]},
+{t:"Given the graph above, what is the indegree of vertex b:",fig:G2,type:"text",w:2,a:"0"},
+{t:"Traverse the graph using BFS. Match each frame to its step number:",fig:gFrame("","",[],true).replace(/#22202e|#4c9a0a/g,'#fff'),type:"match",w:4,o:nums(4),
+  frames:BORD.map(function(n){var d=BS[n-1];return gFrame(d[0],d[1],d[2]);}),a:BORD.map(function(n){return n-1;})},
+{t:"Given the graph above, what is the indegree of vertex d:",fig:G1,type:"text",w:2,a:"1"},
+{t:"Given the graph above, what is the outdegree of vertex b:",fig:G1,type:"text",w:2,a:"0"},
+{t:"Given the graph above, what is the indegree of vertex f:",fig:G1,type:"text",w:2,a:"1"},
+{t:"Given the graph above, what is the indegree of vertex d:",fig:G2,type:"text",w:2,a:"1"},
+{t:"Given the graph above, what is the degree of vertex d:",fig:G2,type:"text",w:2,a:"2"}
+];
+
+QS.dsa_q2=[
+{t:"In an ordered linear search, if the value at the current index is greater than the (search) value, what should you do?",type:"radio",o:["return 0","increment index","return -1","return index","stop program"],a:[2]},
+{t:"What is the BEST CASE COMPLEXITY of a LINEAR SEARCH?",type:"radio",o:["O(log n)","O(n^2)","O(n)","O(n log n)","O(1)"],a:[4]},
+{t:"The index will be returned when you found the value.",type:"radio",o:["True","False"],a:[0]},
+{t:"What is the WORST CASE COMPLEXITY of a BINARY SEARCH?",type:"radio",o:["O(n^2)","O(1)","O(n)","O(log n)","O(n log n)"],a:[3]},
+{t:"Binary search reduces the work by half at each comparison.",type:"radio",o:["True","False"],a:[0]},
+{t:"What is the BEST CASE COMPLEXITY of a BINARY SEARCH?",type:"radio",o:["O(n^2)","O(1)","O(n log n)","O(n)","O(log n)"],a:[1]},
+{t:"What is the WORST CASE COMPLEXITY of a LINEAR SEARCH?",type:"radio",o:["O(log n)","O(n)","O(n log n)","O(1)","O(n^2)"],a:[1]},
+{t:"When does the BEST CASE for a BINARY SEARCH happen?",type:"radio",o:["When the value is not on the list","When the value is at the middle","When the value is at the first index","When the value is at the last index"],a:[1]},
+{t:"0 will be returned when the value is not found.",type:"radio",o:["True","False"],a:[1]},
+{t:"When does the BEST CASE for a LINEAR SEARCH happen?",type:"radio",o:["When the value is at the middle index","When the value is at the first index","When the value is at the last index","When the value is not on the list"],a:[1]}
+];
+META.dsa_q2={limit:"30 mins",secs:1800,method:"Highest grade",pass:"Not specified",grade:10};
+/* ---------------- Supabase: quizzes + attempts ---------------- */
+var sb=null;
+function saveAttemptDB(){
+  if(!sb)return;
+  try{
+    var n=localStorage.getItem("studentName");
+    if(!n){n=(prompt("Enter your name to record your score:")||"").trim();if(n)localStorage.setItem("studentName",n);}
+    sb.from("attempts").insert({quiz_slug:S.k,student_name:n||null,score:S.score,total:tot(Q),secs:TOTAL-S.left,answers:S.ans}).then(function(){},function(){});
+  }catch(e){}
+}
+function loadDB(){
+  if(!window.supabase||!window.SUPABASE_URL||/YOUR_/.test(window.SUPABASE_URL))return Promise.resolve();
+  sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  return sb.from("quizzes").select("slug,title,meta,questions(position,type,text,options,answer,weight,extra)").eq("published",true).then(function(r){
+    if(r.error||!r.data)return;
+    var known={};Object.keys(SECS).forEach(function(c){SECS[c].forEach(function(sec){sec.items.forEach(function(it){if(it.quiz)known[it.quiz]=1;});});});
+    var extra=[];
+    r.data.forEach(function(z){
+      QS[z.slug]=z.questions.sort(function(a,b){return a.position-b.position;}).map(function(x){
+        var q={t:x.text,type:x.type,a:x.answer};
+        if(x.options!=null)q.o=x.options;
+        if(x.weight>1)q.w=x.weight;
+        return Object.assign(q,x.extra||{});
+      });
+      TITLES[z.slug]=z.title;
+      if(z.meta&&z.meta.secs)META[z.slug]=z.meta;
+      if(!H[z.slug])H[z.slug]=[];
+      if(!known[z.slug])extra.push({id:z.slug,type:"quiz",quiz:z.slug,title:z.title,dates:[],state:"none"});
+    });
+    if(extra.length){SECTIONS.push({id:"extra",title:"More quizzes",items:extra});S.open.extra=true;}
+  }).catch(function(){});
+}
+loadDB().then(function(){renderHome();});
+</script>
+</body>
+</html>
