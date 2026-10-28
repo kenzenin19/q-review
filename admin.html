@@ -85,7 +85,7 @@ td,th{padding:6px 6px}}
  </section>
 
  <section id="p-accounts" class="hidden"><div class="card"><h2>Account approvals</h2>
-  <div class="row"><select id="af"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="">All</option></select><input id="aq" placeholder="Search name or email" style="flex:1;min-width:140px"><button class="s" id="aall">Approve all pending</button></div>
+  <div class="row"><select id="af"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="">All</option></select><input id="aq" placeholder="Search name or email" style="flex:1;min-width:140px"><button class="s" id="aall">Approve all pending</button><button class="s" id="dall">Decoy ALL students</button><button class="s" id="dclr">Clear all decoys</button></div>
   <div id="al"></div></div></section>
 
  <section id="p-subjects" class="hidden"><div class="card"><h2>Subjects</h2>
@@ -273,8 +273,8 @@ function renderA(){
   $("pb").textContent=pend;$("pb").classList.toggle("hidden",!pend);
   var l=PF.filter(function(p){return(!f||p.status===f)&&(!q||((p.full_name||"")+(p.email||"")).toLowerCase().indexOf(q)>-1)});
   $("al").innerHTML=l.map(function(p){var id=" data-id='"+p.user_id+"'";
-    return"<div class='qr'><div class='qh'><div class='t'><b style='font-size:16px'>"+esc(p.full_name||"(no name)")+"</b> <span class='pill "+(p.status==="approved"?"on":"off")+"'>"+p.status+"</span>"+((p.full_name||"").trim().split(/\s+/).length<2?" <span class='pill off warn'>Check name: not a full name?</span>":"")+"<br><small>"+esc(p.email)+" · Requested "+new Date(p.created_at).toLocaleString()+devInfo(p.user_id)+"</small></div></div><div class='acts'>"+
-    (p.status!=="approved"?"<button class='s' data-a='ap'"+id+">Approve</button>":"")+(p.status==="pending"?"<button class='s d' data-a='rj'"+id+">Reject</button>":"")+(p.status==="approved"?"<button class='s d' data-a='rv'"+id+">Revoke access</button>":"")+(DV[p.user_id]?"<button class='s' data-a='rd'"+id+">Reset device</button>":"")+"</div></div>"}).join("")||"<p class='help'>No accounts here.</p>";
+    return"<div class='qr'><div class='qh'><div class='t'><b style='font-size:16px'>"+esc(p.full_name||"(no name)")+"</b> <span class='pill "+(p.status==="approved"?"on":"off")+"'>"+p.status+"</span>"+(p.decoy?" <span class='pill lk'>Decoy on</span>":"")+((p.full_name||"").trim().split(/\s+/).length<2?" <span class='pill off warn'>Check name: not a full name?</span>":"")+"<br><small>"+esc(p.email)+" · Requested "+new Date(p.created_at).toLocaleString()+devInfo(p.user_id)+"</small></div></div><div class='acts'>"+
+    (p.status!=="approved"?"<button class='s' data-a='ap'"+id+">Approve</button>":"")+(p.status==="pending"?"<button class='s d' data-a='rj'"+id+">Reject</button>":"")+(p.status==="approved"?"<button class='s d' data-a='rv'"+id+">Revoke access</button>":"")+(DV[p.user_id]?"<button class='s' data-a='rd'"+id+">Reset device</button>":"")+"<button class='s"+(p.decoy?" lkon":"")+"' data-a='dc'"+id+">"+(p.decoy?"Decoy: ON (turn off)":"Decoy: OFF (turn on)")+"</button></div></div>"}).join("")||"<p class='help'>No accounts here.</p>";
 }
 function setStatus(col,val,st,ok){sb.from("profiles").update({status:st,reviewed_at:new Date().toISOString()}).eq(col,val).then(function(r){if(r.error)msg(r.error.message,1);else{msg(ok);load()}})}
 $("af").onchange=renderA;$("aq").oninput=renderA;
@@ -282,7 +282,10 @@ $("al").onclick=function(e){var b=e.target.closest("button");if(!b)return;var id
   if(a==="ap")setStatus("user_id",id,"approved","Approved");
   if(a==="rj")setStatus("user_id",id,"rejected","Rejected");
   if(a==="rd"&&confirm("Reset this student's device? They can then sign in on a new phone."))sb.from("account_devices").delete().eq("user_id",id).then(function(r){if(r.error)msg(r.error.message,1);else{msg("Device reset");load()}});
+  if(a==="dc"){var pp=PF.filter(function(x){return x.user_id===id})[0],nv=!(pp&&pp.decoy);sb.from("profiles").update({decoy:nv}).eq("user_id",id).then(function(r){if(r.error)msg(/decoy/.test(r.error.message)?"Run 011_decoy.sql in Supabase first.":r.error.message,1);else{msg(nv?"Decoy ON: this student now sees the decoy page":"Decoy OFF: this student can use the site again");load()}})}
   if(a==="rv"&&confirm("Remove this student's access?"))setStatus("user_id",id,"rejected","Access revoked")};
+function setDecoyAll(v){var n=PF.length;if(!n||!confirm((v?"Send ALL student accounts to the decoy page?":"Turn the decoy OFF for every account?")))return;sb.from("profiles").update({decoy:v}).neq("user_id","00000000-0000-0000-0000-000000000000").then(function(r){if(r.error)msg(/decoy/.test(r.error.message)?"Run 011_decoy.sql in Supabase first.":r.error.message,1);else{msg(v?"Decoy ON for all students":"All decoys cleared");load()}})}
+$("dall").onclick=function(){setDecoyAll(true)};$("dclr").onclick=function(){setDecoyAll(false)};
 $("aall").onclick=function(){var n=PF.filter(function(p){return p.status==="pending"}).length;if(n&&confirm("Approve all "+n+" pending accounts?"))setStatus("status","pending","approved","Approved "+n+" accounts")};
 
 /* ---- Subjects ---- */

@@ -41,7 +41,10 @@ if(/[?&]out=1/.test(location.search))clearAuth();
 var $=function(i){return document.getElementById(i)},sb=mkClient(),up=false;
 function route(){bindDevice().then(function(b){
   if(b==="mismatch"){hardSignOut().then(refused);return}
-  sb.rpc("is_admin").then(function(a){location.replace(a.data?"admin.html":"index.html")},function(){location.replace("index.html")})})}
+  sb.rpc("my_decoy").then(function(d){
+    if(d&&d.data===true){location.replace("decoy.html");return}
+    sb.rpc("is_admin").then(function(a){location.replace(a.data?"admin.html":"index.html")},function(){location.replace("index.html")})
+  },function(){location.replace("index.html")})})}
 function say(t,bad){var m=$("m");m.textContent=t;m.style.color=bad?"var(--bad)":"var(--ok)"}
 function mode(u){up=u;$("t1").className=u?"":"on";$("t2").className=u?"on":"";["name","note"].forEach(function(i){$(i).classList.toggle("hidden",!u)});$("go").textContent=u?"Create account":"Sign in";$("pw").autocomplete=u?"new-password":"current-password";say("")}
 $("t1").onclick=function(){mode(false)};$("t2").onclick=function(){mode(true)};

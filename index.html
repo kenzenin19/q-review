@@ -832,6 +832,8 @@ function startPersist(){setInterval(persist,1000);window.addEventListener("pageh
     ME=r.data.session.user;
     bindDevice().then(function(b){
     if(b==="mismatch"){hardSignOut().then(refused);return;}
+    sb.rpc("my_decoy").then(function(d){if(d&&d.data===true)location.replace("decoy.html")},function(){});
+    setInterval(function(){sb.rpc("my_decoy").then(function(d){if(d&&d.data===true)location.replace("decoy.html")},function(){})},10000);
     addBar();
     Promise.all([sb.rpc("is_admin"),sb.from("profiles").select("status").eq("user_id",ME.id).maybeSingle()]).then(function(x){
       var st=x[1].data&&x[1].data.status;
