@@ -125,7 +125,7 @@ function boot(){sb.auth.getSession().then(function(r){
   sb.rpc("is_admin").then(function(a){
     if(!a.data){msg("This account is not an admin. Add it to the admins table.",1);return}
     $("login").classList.add("hidden");$("app").classList.remove("hidden");$("out").classList.remove("hidden");
-    $("who").textContent=r.data.session.user.email;load();
+    $("who").textContent=r.data.session.user.email;load().then(admRestore);
   });
 })}
 
@@ -295,5 +295,17 @@ $("sl").onclick=function(e){var b=e.target.closest("button");if(!b)return;var id
   if(SF){var su={};su[SF[0]]=!s[SF[0]];sb.from("subjects").update(su).eq("id",id).then(function(r){if(r.error)msg(r.error.message,1);else{msg(SF[1]+(su[SF[0]]?" locked":" unlocked")+" for every quiz in "+s.name);load()}})}
   if(b.dataset.a==="rn"){var n=prompt("Rename subject",s.name);if(n&&n.trim())sb.from("subjects").update({name:n.trim()}).eq("id",id).then(load)}
   if(b.dataset.a==="ds"&&confirm("Delete subject \""+s.name+"\"? Its quizzes are kept and move to No subject."))sb.from("subjects").delete().eq("id",id).then(function(){msg("Deleted");load()})};
+/* ---- remember where the admin was after a refresh ---- */
+var ADM_IDS=["qs","qf","rsub","rq","rs","ts","tsort","af","aq"];
+function admSave(){try{if($("app").classList.contains("hidden"))return;var f={};ADM_IDS.forEach(function(i){f[i]=$(i).value});
+  localStorage.setItem("qr_admin_state",JSON.stringify({t:(document.querySelector(".tabs button.on")||{dataset:{}}).dataset.t||"quizzes",s:openS,f:f,y:window.scrollY||0}))}catch(e){}}
+function admRestore(){var d;try{d=JSON.parse(localStorage.getItem("qr_admin_state")||"null")}catch(e){d=null}
+  setInterval(admSave,1000);window.addEventListener("pagehide",admSave);
+  if(!d)return;
+  try{ADM_IDS.forEach(function(i){if(d.f&&d.f[i]!=null)$(i).value=d.f[i]});
+    fillRq();if(d.f&&d.f.rq!=null)$("rq").value=d.f.rq;
+    openS=d.s||null;renderQ();renderR();renderT();renderA();
+    tab(["quizzes","upload","results","students","accounts","subjects"].indexOf(d.t)>-1?d.t:"quizzes");
+    if(d.y)setTimeout(function(){window.scrollTo(0,d.y)},60)}catch(e){}}
 boot();
 </script></body></html>
