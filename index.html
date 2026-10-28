@@ -689,8 +689,8 @@ META.dsa_q2={limit:"30 mins",secs:1800,method:"Highest grade",pass:"Not specifie
 var sb=null;
 var ME=null;
 function renderPending(st){
-  var rej=st==="rejected";
-  root.innerHTML='<div class="card"><h2 class="qt">'+(rej?"Access declined":"Waiting for approval")+'</h2><p style="font-size:16px;max-width:60ch">'+(rej?"Your account request was not approved. Please contact your instructor.":"Your account was created. The admin must review and approve it before you can see the quizzes. Check back soon.")+'</p><div class="nav" style="justify-content:flex-start"><button class="btn primary" id="chk" type="button">Check again</button></div></div>';
+  var rej=st==="rejected",nm=esc((ME.user_metadata&&ME.user_metadata.full_name)||ME.email);
+  root.innerHTML='<div class="card"><h2 class="qt">'+(rej?"Access declined":"Waiting for approval")+'</h2><p style="font-size:16px;max-width:60ch">'+(rej?"Your account request was not approved. Please contact your instructor.":"Your account was created. The admin must review and approve it before you can see the quizzes. Check back soon.")+'</p><p style="font-size:16px">Name submitted: <b>'+nm+'</b></p><p style="font-size:14px;color:#7b7f92;max-width:60ch">Make sure this is your complete real name. If it is not, tell your instructor so it can be corrected before approval.</p><div class="nav" style="justify-content:flex-start"><button class="btn primary" id="chk" type="button">Check again</button></div></div>';
   $("chk").onclick=function(){location.reload();};
 }
 function logEvent(kind){
