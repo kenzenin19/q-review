@@ -26,7 +26,7 @@ details.g>summary{cursor:pointer;padding:12px 16px;font-weight:600;font-size:15p
 .pv{margin-top:8px;font-size:13px;background:#8881;border-radius:8px;padding:8px 12px}.pv ol{margin:0;padding-left:20px}.pv li{margin:6px 0}.pv .ok{color:var(--ok);font-weight:600}
 .tw{overflow-x:auto}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th{font-size:12px;color:var(--mut)}
 #msg{position:sticky;top:0;z-index:5;padding:8px 12px;border-radius:8px;margin-bottom:10px;display:none;color:#222}
-.hidden{display:none}.help{font-size:12px;color:var(--mut)}
+.bar{height:10px;background:var(--soft);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}.warn{color:var(--bad);font-weight:600}tr[data-k]{cursor:pointer}tr[data-k]:hover{background:#8881}.hidden{display:none}.help{font-size:12px;color:var(--mut)}
 dialog{border:0;border-radius:14px;padding:18px;background:var(--card);color:var(--fg);max-width:440px;width:92%}dialog::backdrop{background:#0006}
 </style></head><body>
 <div class="top"><b>Quiz Admin</b><span class="sp"></span><span id="who" class="help"></span><button class="s hidden" id="out">Sign out</button></div>
@@ -36,7 +36,7 @@ dialog{border:0;border-radius:14px;padding:18px;background:var(--card);color:var
  <div class="row"><input id="em" type="email" placeholder="email" autocomplete="username"><input id="pw" type="password" placeholder="password" autocomplete="current-password"><button id="go">Sign in</button></div></div>
 
 <div id="app" class="hidden">
- <nav class="tabs"><button data-t="quizzes" class="on">Quizzes</button><button data-t="upload">Upload</button><button data-t="results">Results</button><button data-t="subjects">Subjects</button></nav>
+ <nav class="tabs"><button data-t="quizzes" class="on">Quizzes</button><button data-t="upload">Upload</button><button data-t="results">Results</button><button data-t="students">Students</button><button data-t="subjects">Subjects</button></nav>
 
  <section id="p-quizzes">
   <div class="stats" id="stats"></div>
@@ -69,6 +69,14 @@ dialog{border:0;border-radius:14px;padding:18px;background:var(--card);color:var
   <div class="tw"><table id="at"></table></div>
  </div></section>
 
+ <section id="p-students" class="hidden">
+  <div id="tl"><div class="card"><h2>Students</h2>
+   <div class="row"><input id="ts" placeholder="Search student" style="flex:1;min-width:140px"><select id="tsort"><option value="last">Sort: last active</option><option value="name">Sort: name</option><option value="avg">Sort: average score</option><option value="n">Sort: attempts</option><option value="va">Sort: answer views</option><option value="ts">Sort: tab switches</option></select></div>
+   <p class="help">Click a student for details. Answer views, reviews and tab switches are counted only from when the updated student page went live.</p>
+   <div class="tw"><table id="tt"></table></div></div></div>
+  <div id="td" class="hidden"></div>
+ </section>
+
  <section id="p-subjects" class="hidden"><div class="card"><h2>Subjects</h2>
   <div class="row"><input id="ns" placeholder="New subject name" style="flex:1;min-width:180px"><button id="adds">Add subject</button></div>
   <div id="sl"></div>
@@ -85,10 +93,10 @@ dialog{border:0;border-radius:14px;padding:18px;background:var(--card);color:var
 <script src="config.js"></script>
 <script>
 var $=function(i){return document.getElementById(i)},sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-var SUB=[],QZ=[],AT=[],editId=null;
+var SUB=[],QZ=[],AT=[],EV=[],editId=null,openS=null;
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function msg(t,bad){var m=$("msg");m.textContent=t;m.style.display="block";m.style.background=bad?"#f6c6c6":"#cfe9d4";clearTimeout(msg.h);msg.h=setTimeout(function(){m.style.display="none"},4500)}
-function tab(t){document.querySelectorAll(".tabs button").forEach(function(b){b.classList.toggle("on",b.dataset.t===t)});["quizzes","upload","results","subjects"].forEach(function(x){$("p-"+x).classList.toggle("hidden",x!==t)});window.scrollTo(0,0)}
+function tab(t){document.querySelectorAll(".tabs button").forEach(function(b){b.classList.toggle("on",b.dataset.t===t)});["quizzes","upload","results","students","subjects"].forEach(function(x){$("p-"+x).classList.toggle("hidden",x!==t)});window.scrollTo(0,0)}
 document.querySelector(".tabs").onclick=function(e){var b=e.target.closest("button");if(b)tab(b.dataset.t)};
 function subName(id){var s=SUB.filter(function(x){return x.id===id})[0];return s?s.name:"No subject"}
 function qBySlug(s){return QZ.filter(function(q){return q.slug===s})[0]}
@@ -109,19 +117,20 @@ function load(){
   return Promise.all([
     sb.from("subjects").select("*").order("position").order("name"),
     sb.from("quizzes").select("id,slug,title,published,meta,subject_id,questions(count)").order("slug"),
-    sb.from("attempts").select("quiz_slug,student_name,score,total,secs,created_at").order("created_at",{ascending:false}).limit(500)
+    sb.from("attempts").select("user_id,quiz_slug,student_name,score,total,secs,created_at").order("created_at",{ascending:false}).limit(500),
+    sb.from("events").select("user_id,student_name,quiz_slug,kind,created_at").order("created_at",{ascending:false}).limit(3000)
   ]).then(function(r){
     if(r[0].error){msg("Subjects table missing. Run 003_subjects.sql in Supabase first.",1)}
-    SUB=r[0].data||[];QZ=r[1].data||[];AT=r[2].data||[];
+    SUB=r[0].data||[];QZ=r[1].data||[];AT=r[2].data||[];EV=r[3].error?[]:(r[3].data||[]);
     $("usub").innerHTML=subOpts();$("eS").innerHTML=subOpts();$("rsub").innerHTML=subOpts(1);
-    fillRq();renderQ();renderS();renderR();
+    fillRq();renderQ();renderS();renderR();renderT();
   });
 }
 
 /* ---- Quizzes ---- */
 function renderQ(){
   var pub=QZ.filter(function(q){return q.published}).length,avg=AT.length?Math.round(AT.reduce(function(s,a){return s+(a.total?a.score/a.total:0)},0)/AT.length*100):0;
-  $("stats").innerHTML=[[SUB.length,"Subjects"],[QZ.length,"Quizzes"],[pub,"Published"],[AT.length,"Attempts"],[avg+"%","Avg score"]].map(function(x){return"<div class='stat'><b>"+x[0]+"</b><span>"+x[1]+"</span></div>"}).join("");
+  $("stats").innerHTML=[[SUB.length,"Subjects"],[QZ.length,"Quizzes"],[pub,"Published"],[AT.length,"Attempts"],[EV.filter(function(e){return e.kind==="view_answers"}).length,"Answer views"],[avg+"%","Avg score"]].map(function(x){return"<div class='stat'><b>"+x[0]+"</b><span>"+x[1]+"</span></div>"}).join("");
   var q=$("qs").value.toLowerCase(),f=$("qf").value,h="";
   var groups=SUB.map(function(s){return{id:s.id,name:s.name}});groups.push({id:null,name:"No subject"});
   groups.forEach(function(g){
@@ -195,6 +204,45 @@ $("rsub").onchange=function(){fillRq();renderR()};$("rq").onchange=renderR;$("rs
 $("csv").onclick=function(){var l=rFiltered(),q=function(v){return'"'+String(v==null?"":v).replace(/"/g,'""')+'"'};
   var c=["When,Student,Subject,Quiz,Score,Total,Percent,Minutes"].concat(l.map(function(a){var z=qBySlug(a.quiz_slug);return[a.created_at,a.student_name,z?subName(z.subject_id):"",z?z.title:a.quiz_slug,a.score,a.total,a.total?Math.round(a.score/a.total*100):0,Math.round((a.secs||0)/60)].map(q).join(",")})).join("\n");
   var el=document.createElement("a");el.href=URL.createObjectURL(new Blob([c],{type:"text/csv"}));el.download="results.csv";el.click()};
+
+/* ---- Students ---- */
+function pc(a){return a.total?a.score/a.total*100:0}
+function cnt(l,k){return l.filter(function(e){return e.kind===k}).length}
+function qn(sl){var z=qBySlug(sl);return z?z.title:sl}
+function buildStudents(){var m={};
+  function g(u,n){var k=u||"n:"+n;return m[k]||(m[k]={key:k,name:n||"-",att:[],ev:[]})}
+  AT.forEach(function(x){g(x.user_id,x.student_name).att.push(x)});
+  EV.forEach(function(e){g(e.user_id,e.student_name).ev.push(e)});
+  return Object.keys(m).map(function(k){var s=m[k];s.n=s.att.length;
+    s.avg=s.n?Math.round(s.att.reduce(function(t,x){return t+pc(x)},0)/s.n):0;
+    s.best=s.n?Math.round(Math.max.apply(null,s.att.map(pc))):0;
+    s.va=cnt(s.ev,"view_answers");s.rv=cnt(s.ev,"view_review");s.ts=cnt(s.ev,"tab_switch");
+    s.mins=Math.round(s.att.reduce(function(t,x){return t+(x.secs||0)},0)/60);
+    var d=s.att.map(function(x){return x.created_at}).concat(s.ev.map(function(e){return e.created_at})).sort();s.last=d.length?d[d.length-1]:"";return s})}
+function renderT(){
+  $("tl").classList.toggle("hidden",!!openS);$("td").classList.toggle("hidden",!openS);
+  if(openS)return renderTD();
+  var q=$("ts").value.toLowerCase(),o=$("tsort").value,l=buildStudents().filter(function(s){return!q||s.name.toLowerCase().indexOf(q)>-1});
+  l.sort(function(a,b){return o==="name"?a.name.localeCompare(b.name):o==="last"?(b.last>a.last?1:-1):b[o]-a[o]});
+  $("tt").innerHTML="<tr><th>Student</th><th>Attempts</th><th>Avg</th><th>Best</th><th>Answer views</th><th>Reviews</th><th>Tab switches</th><th>Time</th><th>Last active</th></tr>"+
+  (l.map(function(s){return"<tr data-k='"+esc(s.key)+"'><td><b>"+esc(s.name)+"</b></td><td>"+s.n+"</td><td>"+s.avg+"%</td><td>"+s.best+"%</td><td>"+s.va+"</td><td>"+s.rv+"</td><td class='"+(s.ts>=5?"warn":"")+"'>"+s.ts+"</td><td>"+s.mins+" min</td><td>"+(s.last?new Date(s.last).toLocaleString():"-")+"</td></tr>"}).join("")||"<tr><td colspan='9' class='help'>No student activity yet.</td></tr>");
+}
+$("ts").oninput=renderT;$("tsort").onchange=renderT;
+$("tt").onclick=function(e){var r=e.target.closest("tr[data-k]");if(r){openS=r.dataset.k;renderT();window.scrollTo(0,0)}};
+function renderTD(){
+  var s=buildStudents().filter(function(x){return x.key===openS})[0];if(!s){openS=null;return renderT()}
+  var chips=[[s.n,"Attempts"],[s.avg+"%","Average"],[s.best+"%","Best"],[s.va,"Answer views"],[s.rv,"Review views"],[s.ts,"Tab switches"],[s.mins+" min","Quiz time"]].map(function(x){return"<div class='stat'><b>"+x[0]+"</b><span>"+x[1]+"</span></div>"}).join("");
+  var bs={};s.att.forEach(function(x){var z=qBySlug(x.quiz_slug),k=z?subName(z.subject_id):"Other";(bs[k]=bs[k]||[]).push(pc(x))});
+  var sub=Object.keys(bs).map(function(k){var v=Math.round(bs[k].reduce(function(t,x){return t+x},0)/bs[k].length);return"<div style='margin:8px 0'><div class='help'>"+esc(k)+" · "+v+"% average · "+bs[k].length+" attempts</div><div class='bar'><i style='width:"+v+"%'></i></div></div>"}).join("")||"<p class='help'>No attempts yet.</p>";
+  var sl={};s.att.concat(s.ev).forEach(function(x){sl[x.quiz_slug]=1});
+  var qt="<tr><th>Quiz</th><th>Attempts</th><th>Best</th><th>Latest</th><th>Answer views</th><th>Reviews</th><th>Tab switches</th></tr>"+Object.keys(sl).map(function(k){
+    var at=s.att.filter(function(x){return x.quiz_slug===k}),ev=s.ev.filter(function(e){return e.quiz_slug===k});
+    return"<tr><td>"+esc(qn(k))+"</td><td>"+at.length+"</td><td>"+(at.length?Math.round(Math.max.apply(null,at.map(pc)))+"%":"-")+"</td><td>"+(at.length?Math.round(pc(at[0]))+"%":"-")+"</td><td>"+cnt(ev,"view_answers")+"</td><td>"+cnt(ev,"view_review")+"</td><td>"+cnt(ev,"tab_switch")+"</td></tr>"}).join("");
+  var LB={view_answers:"Viewed answers",view_review:"Viewed an attempt review",tab_switch:"Left the quiz tab"};
+  var tl=s.att.map(function(x){return{t:x.created_at,x:"Finished "+qn(x.quiz_slug)+": "+x.score+" / "+x.total}}).concat(s.ev.map(function(e){return{t:e.created_at,x:(LB[e.kind]||e.kind)+": "+qn(e.quiz_slug)}})).sort(function(a,b){return b.t>a.t?1:-1}).slice(0,40).map(function(x){return"<div class='qr' style='padding:6px 0'><small class='help'>"+new Date(x.t).toLocaleString()+"</small> &nbsp;"+esc(x.x)+"</div>"}).join("")||"<p class='help'>No activity.</p>";
+  $("td").innerHTML="<button class='s' id='tback'>← All students</button><div class='card' style='margin-top:10px'><h2>"+esc(s.name)+"</h2><div class='stats' style='margin:0'>"+chips+"</div></div><div class='card'><h2>Performance by subject</h2>"+sub+"</div><div class='card'><h2>By quiz</h2><div class='tw'><table>"+qt+"</table></div></div><div class='card'><h2>Recent activity</h2>"+tl+"</div>";
+  $("tback").onclick=function(){openS=null;renderT()};
+}
 
 /* ---- Subjects ---- */
 function renderS(){$("sl").innerHTML=SUB.length?SUB.map(function(s){var n=QZ.filter(function(z){return z.subject_id===s.id}).length;

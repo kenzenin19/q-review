@@ -630,8 +630,8 @@ function renderInfo(){
     ov.onclick=function(e){if(e.target===ov)ov.remove();};
     $("atyes").onclick=function(){ov.remove();if(A[k]&&A[k].finished)A[k]=null;beginQuiz(k);};
   };
-  $("va").onclick=function(){S.view="answers";renderAnswers();window.scrollTo(0,0);};
-  root.querySelectorAll("[data-rv]").forEach(function(a){a.onclick=function(e){e.preventDefault();S.view="review";renderReview(+a.dataset.rv);window.scrollTo(0,0);};});
+  $("va").onclick=function(){logEvent("view_answers");S.view="answers";renderAnswers();window.scrollTo(0,0);};
+  root.querySelectorAll("[data-rv]").forEach(function(a){a.onclick=function(e){e.preventDefault();logEvent("view_review");S.view="review";renderReview(+a.dataset.rv);window.scrollTo(0,0);};});
 }
 function ordNote(){return '<div class="ordnote"><b>Note:</b> The order of the questions and answer choices in your actual quiz may be different from what you see here. Always check the <b>actual answer text</b>, not the letter (a, b, c&hellip;).</div>';}
 function searchBox(){return '<div class="srch"><input id="qs" type="search" placeholder="Search question..." aria-label="Search questions" autocomplete="off"><span id="qc" class="qc"></span></div><p id="qn" class="qn" style="display:none">No matching questions.</p>';}
@@ -841,6 +841,11 @@ META.dsa_q2={limit:"30 mins",secs:1800,method:"Highest grade",pass:"Not specifie
 /* ---------------- Supabase: quizzes + attempts ---------------- */
 var sb=null;
 var ME=null;
+function logEvent(kind){
+  if(!sb||!ME||!S.k)return;
+  sb.from("events").insert({user_id:ME.id,student_name:(ME.user_metadata&&ME.user_metadata.full_name)||ME.email,quiz_slug:S.k,kind:kind}).then(function(){},function(){});
+}
+document.addEventListener("visibilitychange",function(){if(document.hidden&&S.view==="quiz"&&!S.finished)logEvent("tab_switch");});
 function saveAttemptDB(){
   if(!sb||!ME)return;
   sb.from("attempts").insert({user_id:ME.id,quiz_slug:S.k,student_name:(ME.user_metadata&&ME.user_metadata.full_name)||ME.email,score:S.score,total:tot(Q),secs:TOTAL-S.left,answers:S.ans}).then(function(){},function(){});
