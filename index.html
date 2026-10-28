@@ -190,64 +190,14 @@ h3.sum{font-weight:500;font-size:20px;margin:0 0 14px}
 <script src="config.js"></script>
 <script>
 /* ---------------- data ---------------- */
-var PRE=[
-{t:"In Bayes' Theorem, how is the conditional probability of event A, given that event B has already occurred, formally denoted?",type:"multi",o:["P(A)","P(A|B)","P(B)","P(B|A)"],a:[1]},
-{t:"Which formula is used to compute the Expected Value for categorical variables?",type:"multi",o:["E(x) = nx","E(n) = n × p","E(x) = n × q","E(x) = n × p"],a:[3]},
-{t:"In a game where two six-sided dice are rolled, what is the expected value of the sum of the results?",type:"text",a:"7"},
-{t:"The linearity of expectation states that the expected value of the sum of random variables is equal to the sum of their individual expected values, but this rule only applies if the variables are independent.",type:"radio",o:["True","False"],a:[1]},
-{t:"Based on the Bayes' Theorem application for a standard deck of 52 cards, what is the posterior probability that a randomly drawn card is a King, given that it is a Face card?",type:"multi",o:["75%","1/3","1/4","1/2","33.33%","0.25"],a:[1,4]}
-];
-var POST=[
-{t:"Based on the Bayes' Theorem application for a standard deck of 52 cards, what is the posterior probability that a randomly drawn card is a King, given that it is a Face card?",type:"multi",o:["1/2","33.33%","1/6","1/3","0.25","75%"],a:[1,3]},
-{t:"In Bayes' Theorem, how is the conditional probability of event A, given that event B has already occurred, formally denoted?",type:"multi",o:["P(B)","P(A|B)","P(A)","P(B|A)"],a:[1]},
-{t:"The linearity of expectation states that the expected value of the sum of random variables is equal to the sum of their individual expected values, but this rule only applies if the variables are independent.",type:"radio",o:["True","False"],a:[1]},
-{t:"If two random variables, X and Y, are known to be dependent on one another, you cannot find the expected value of their sum simply by adding E[X] and E[Y].",type:"radio",o:["True","False"],a:[1]},
-{t:"Bayes' Theorem establishes the relationship between two events exclusively by computing their different conditional probabilities.",type:"radio",o:["True","False"],a:[1]},
-{t:"Which formula is used to compute the Expected Value for categorical variables?",type:"multi",o:["E(n) = n × p","E(x) = n × p","E(x) = nx","E(x) = n × q"],a:[1]},
-{t:"According to the generalized theorem for the linearity of expectation, if a random variable X is multiplied by a constant c, its expected value is also multiplied by that same constant.",type:"radio",o:["True","False"],a:[0]},
-{t:"In the Bayes' Theorem example regarding a standard deck of cards, the probability of initially drawing a King (1/13) acts as the prior probability, while the calculated P(King|Face) acts as the posterior probability.",type:"radio",o:["True","False"],a:[0]},
-{t:"In a game where two six-sided dice are rolled, what is the expected value of the sum of the results?",type:"text",a:"7"},
-{t:"To compute the expected value of the sum of 5 dice throws, you must first calculate the individual probability of every possible sum (from 5 to 30) before averaging them.",type:"radio",o:["True","False"],a:[1]}
-];
-var PRE4=[
-{t:"Find the 3rd element of the following sequence: aₙ = 2ⁿ, where n = 0,1,2,3...",type:"text",a:"4"},
-{t:"What are the first five terms of the sequence in which a₁ = 1 and aₙ = 2aₙ₋₁ − 2?",type:"multi",o:["1, 0, −2, −6, −14","1, 0, 2, 6, 14","0, 1, 2, 6, 14","0, 1, −2, −6, −14","0, 1, 2, 3, 4"],a:[0]},
-{t:"The recurrence relation aₙ = 2aₙ₋₁ + 1 is NON HOMOGENEOUS.",type:"radio",o:["True","False"],a:[0]},
-{t:"Find the 3rd element of the following sequence: aₙ = n², where n = 1,2,3...",type:"text",a:"9"},
-{t:"Find the 3rd element of the following sequence: aₙ = (−1)ⁿ, where n = 0,1,2,3...",type:"text",a:"1"}
-];
-var POST4=[
-{t:"Based on the recurrence relation aₙ = 5aₙ₋₁ + 6aₙ₋₂ and initial conditions (a₀ = 1, a₁ = 3), what is the value of the next term, a₂?",type:"text",a:"21"},
-{t:"Find the 3rd element of the following sequence: aₙ = n², where n = 1,2,3...",type:"text",a:"9"},
-{t:"Find the 3rd element of the following sequence: aₙ = 2ⁿ, where n = 0,1,2,3...",type:"text",a:"4"},
-{t:"Based on the recurrence relation (aₙ = 10aₙ₋₁ + 25aₙ₋₂), what is the value of the term a₂?",type:"text",a:"100"},
-{t:"What are the first five terms of the sequence in which a₁ = 1 and aₙ = 2aₙ₋₁ − 2?",type:"multi",o:["1, 0, −2, −6, −14", "1, 0, 2, 6, 14", "0, 1, 2, 3, 4", "0, 1, −2, −6, −14", "0, 1, 2, 6, 14"],a:[0]},
-{t:"What are the roots of the characteristic equation for the sequence that satisfies the recurrence relation aₙ = 5aₙ₋₁ + 6aₙ₋₂?",type:"multi",o:["1", "2", "−1", "−3", "6", "−6", "−2", "3"],a:[2, 4]},
-{t:"The recurrence relation aₙ = 2aₙ₋₁ + 1 is NON HOMOGENEOUS.",type:"radio",o:["True", "False"],a:[0]},
-{t:"Based on the recurrence relation (aₙ = 10aₙ₋₁ + 25aₙ₋₂), how are the initial conditions defined for this sequence?",type:"multi",o:["a₁ = 5", "a₀ = 5", "a₀ = 2", "a₁ = 2"],a:[0, 2]},
-{t:"What is the characteristic equation for the recurrence relation aₙ = 5aₙ₋₁ + 6aₙ₋₂?",type:"multi",o:["r² + 5r − 6 = 0", "r² − 5r − 6 = 0", "r² − 5r + 6 = 0", "r² − r − 6 = 0", "−r² − 5r − 6 = 0"],a:[1]},
-{t:"Find the 3rd element of the following sequence: aₙ = (−1)ⁿ, where n = 0,1,2,3...",type:"text",a:"1"}
-];
+var PRE=[];
+var POST=[];
+var PRE4=[];
+var POST4=[];
 var PRE5=[];
 var POST5=[];
-var ODE1=[
-{t:"Given the ODE: y‴ + 3y″ − 4y′ − 12y = 0. Complete the equivalent auxiliary equation (drag the numbers into the boxes, or click a number to place it):",type:"drop",w:2,lab:["r³ +","r² +","r +","= 0"],o:["0","−4","12","−3","−12","1","4","3","−1"],a:[5,7,1,4]},
-{t:"Given the ODE: y‴ + 3y″ − 4y′ − 12y = 0. What is the general solution?",type:"multi",w:2,o:["y = C₁e²ˣ + C₂e⁻²ˣ + C₃e⁻³ˣ","y = C₁e⁻²ˣ + C₂e⁻²ˣ + C₃e⁻³ˣ","y = C₁e⁻²ˣ + C₂e²ˣ + C₃e³ˣ","y = C₁e⁻²ˣ + C₂e²ˣ + C₃e⁻³ˣ","y = C₁e²ˣ + C₂e²ˣ + C₃e³ˣ"],a:[0,3]},
-{t:"Given the ODE: y‴ + 3y″ − 4y′ − 12y = 0. Which are the roots?",type:"multi",w:3,o:["1","−1","−3","−4","2","4","3","−2"],a:[2,4,7]},
-{t:"Given the ODE: y‴ + 3y″ − 4y′ − 12y = 0. From the choices below, which are the possible rational roots?",type:"multi",w:3,o:["±1","±10","±5","±12","±7","±6","±9","±8","±2","±3","±4"],a:[0,3,5,8,9,10]}
-];
-var ODE2=[
-{t:"What is the P(x) of the given DE: x²y″ + 3xy′ − 8y = 0",type:"radio",w:2,o:["3y′","3xy′/x","3/x","3xy′","3x"],a:[2]},
-{t:"Given the DE: x²y″ + 2xy′ − 2y = 0  What is y₂(x), if y₁(x) = x? Choose all correct answer/s.",type:"multi",w:2,o:["x","1/x² + (0)x","1/x + (0)x","1/x²","x²"],a:[1,3]},
-{t:"What is the reduced form of the given DE: x²y″ + 2xy′ − 2y = 0  Choose all correct answer/s.",type:"multi",w:2,o:["y″ + 2y′/x + (−2y/x²) = 0","y″ + 2y′/x + 2y/x² = 0","y″ + 2y′/x − 2y/x² = 0","y″ + (2/x)y′ − (2/x²)y = 0","y″ + (2/x)y′ + (2/x²)y = 0"],a:[0,2,3]},
-{t:"What is the y(x) of the given DE: x²y″ + 2xy′ − 2y = 0  Choose all correct answer/s.",type:"multi",w:2,o:["y(x) = C₁x + C₂/x²","y(x) = C₂/x² − C₁x","y(x) = C₁x − C₂/x²","y(x) = C₂/x² + C₁x","y(x) = C₁x + C₂/x"],a:[0,3]},
-{t:"What is the reduced form of the given DE: x²y″ + 3xy′ − 8y = 0  Choose all correct answer/s.",type:"multi",w:2,o:["y″ + 3y′/x + 8y/x² = 0","y″ + 3y′/x + (−8y/x²) = 0","y″ + 3y′/x − 8y/x² = 0","y″ + (3/x)y′ − (8/x²)y = 0","y″ + (3/x)y′ + (8/x²)y = 0"],a:[1,2,3]},
-{t:"What is the y(x) of the given DE: x²y″ + 3xy′ − 8y = 0  Choose all correct answer/s.",type:"multi",w:2,o:["y(x) = C₂/x² + C₁x⁴","y(x) = C₁x² + C₂/x⁴","y(x) = C₂/x² + C₁x²","y(x) = C₂/x⁴ + C₁x²","y(x) = C₁x² − C₂/x⁴"],a:[1,3]},
-{t:"Given the DE: x²y″ + 3xy′ − 8y = 0  What is y₂(x), if y₁(x) = x²? Choose all correct answer/s.",type:"multi",w:2,o:["−1/x⁴","1/x⁴","1/x⁴ + (0)x²","x⁴","1/x⁴ + (0)x⁴"],a:[1,2]},
-{t:"Given: y(x) = C₂/x² + C₁x. If y₁(x) = x, what should be the value of C₂ to get y₁(x)?",type:"radio",w:2,o:["1","0"],a:[1]},
-{t:"Given: y(x) = C₂/x⁴ + C₁x². If y₁(x) = x², what should be the value of C₁ to get y₁(x)?",type:"radio",w:2,o:["1","0"],a:[0]},
-{t:"What is the P(x) of the given DE: x²y″ + 2xy′ − 2y = 0",type:"radio",w:2,o:["2x","2/x","2xy′","2/x^2","2y′"],a:[1]}
-];
+var ODE1=[];
+var ODE2=[];
 var META={def:{limit:"10 mins",secs:600,method:"Highest grade",pass:"4.00 out of 5.00",grade:5},
   dsa_lt1:{limit:"30 mins",secs:1800,method:"Last attempt",pass:"Not specified",grade:100},
   ode_q1:{limit:"30 mins",secs:1800,method:"Last attempt",pass:"8.00 out of 10.00",grade:10},
@@ -368,20 +318,7 @@ var SECTIONS3=[
 var SECS={ds2:SECTIONS,csam:SECTIONS2,dsa:SECTIONS3};
 S.open.dsa1=true;S.open.dsa2=true;S.open.dsa3=true;
 S.done.dsa_q1=true;S.done.dsa_lt1=true;
-var FIG_K5='<svg viewBox="0 0 300 280" width="300" height="280" role="img" aria-label="Graph with 5 vertices where every vertex is connected to every other vertex" style="display:block;margin:14px 0 6px;max-width:100%;height:auto"><line x1="150" y1="22" x2="278" y2="115" stroke="#222" stroke-width="2.5"/><line x1="150" y1="22" x2="229" y2="256" stroke="#222" stroke-width="2.5"/><line x1="150" y1="22" x2="71" y2="256" stroke="#222" stroke-width="2.5"/><line x1="150" y1="22" x2="22" y2="115" stroke="#222" stroke-width="2.5"/><line x1="278" y1="115" x2="229" y2="256" stroke="#222" stroke-width="2.5"/><line x1="278" y1="115" x2="71" y2="256" stroke="#222" stroke-width="2.5"/><line x1="278" y1="115" x2="22" y2="115" stroke="#222" stroke-width="2.5"/><line x1="229" y1="256" x2="71" y2="256" stroke="#222" stroke-width="2.5"/><line x1="229" y1="256" x2="22" y2="115" stroke="#222" stroke-width="2.5"/><line x1="71" y1="256" x2="22" y2="115" stroke="#222" stroke-width="2.5"/><circle cx="150" cy="22" r="5" fill="#e53935"/><circle cx="278" cy="115" r="5" fill="#e53935"/><circle cx="229" cy="256" r="5" fill="#e53935"/><circle cx="71" cy="256" r="5" fill="#e53935"/><circle cx="22" cy="115" r="5" fill="#e53935"/></svg>';
-var FIG_UG='<svg viewBox="0 0 330 280" width="330" height="280" role="img" aria-label="Undirected graph with vertices 0 to 8 joined by plain lines" style="display:block;margin:14px 0 6px;max-width:100%;height:auto"><rect width="330" height="280" fill="#f4f4f4"/><line x1="68" y1="23" x2="220" y2="41" stroke="#333" stroke-width="1.4"/><line x1="68" y1="23" x2="22" y2="115" stroke="#333" stroke-width="1.4"/><line x1="22" y1="115" x2="146" y2="92" stroke="#333" stroke-width="1.4"/><line x1="22" y1="115" x2="164" y2="175" stroke="#333" stroke-width="1.4"/><line x1="42" y1="201" x2="164" y2="175" stroke="#333" stroke-width="1.4"/><line x1="164" y1="175" x2="220" y2="41" stroke="#333" stroke-width="1.4"/><line x1="164" y1="175" x2="190" y2="251" stroke="#333" stroke-width="1.4"/><line x1="220" y1="41" x2="274" y2="209" stroke="#333" stroke-width="1.4"/><line x1="220" y1="41" x2="304" y2="125" stroke="#333" stroke-width="1.4"/><line x1="304" y1="125" x2="274" y2="209" stroke="#333" stroke-width="1.4"/><circle cx="68" cy="23" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="68" y="27" font-size="12" font-weight="600" text-anchor="middle" fill="#111">0</text><circle cx="220" cy="41" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="220" y="45" font-size="12" font-weight="600" text-anchor="middle" fill="#111">1</text><circle cx="22" cy="115" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="22" y="119" font-size="12" font-weight="600" text-anchor="middle" fill="#111">2</text><circle cx="146" cy="92" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="146" y="96" font-size="12" font-weight="600" text-anchor="middle" fill="#111">3</text><circle cx="164" cy="175" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="164" y="179" font-size="12" font-weight="600" text-anchor="middle" fill="#111">4</text><circle cx="42" cy="201" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="42" y="205" font-size="12" font-weight="600" text-anchor="middle" fill="#111">5</text><circle cx="190" cy="251" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="190" y="255" font-size="12" font-weight="600" text-anchor="middle" fill="#111">6</text><circle cx="304" cy="125" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="304" y="129" font-size="12" font-weight="600" text-anchor="middle" fill="#111">7</text><circle cx="274" cy="209" r="11" fill="#e8e8e8" stroke="#333" stroke-width="1.2"/><text x="274" y="213" font-size="12" font-weight="600" text-anchor="middle" fill="#111">8</text></svg>';
-QS.dsa_q1=[
-{t:"There are 5 vertices in the graph.",fig:FIG_K5,type:"radio",o:["True","False"],a:[0]},
-{t:"In Breadth-First Search of Graph, Queue data structure is used.",type:"radio",o:["True","False"],a:[0]},
-{t:"There are 15 edges in the graph.",fig:FIG_K5,type:"radio",o:["True","False"],a:[1]},
-{t:"Stack is used for Depth First Search of a Graph.",type:"radio",o:["True","False"],a:[0]},
-{t:"All graphs must have edges.",type:"radio",o:["True","False"],a:[0]},
-{t:"A directed graph with directed cycles is called a directed acyclic graph.",type:"radio",o:["True","False"],a:[1]},
-{t:"The graph below is an example of an undirected graph.",fig:FIG_UG,type:"radio",o:["True","False"],a:[0]},
-{t:"A graph is a collection of nodes, called edges and line segments called arcs or vertices that connect pair of the nodes",type:"radio",o:["True","False"],a:[1]},
-{t:"The path represents a sequence of vertices between the two edges.",type:"radio",o:["True","False"],a:[1]},
-{t:"The graph can be represented as an adjacency matrix using a 2D array.",type:"radio",o:["True","False"],a:[0]}
-];QS.dsa_lt1=[];QS.dsa_q2=[];QS.dsa_q3=[];
+QS.dsa_q1=[];QS.dsa_lt1=[];QS.dsa_q2=[];QS.dsa_q3=[];
 TITLES.dsa_q1="Non-Linear Data Structure - Graph ADT (Quiz)";TITLES.dsa_lt1="Learning Task (Non-Linear Data Structure - Graph)";TITLES.dsa_q2="Searching Techniques (Quiz)";TITLES.dsa_q3="Sorting (Quiz)";
 H.dsa_q1=[];H.dsa_lt1=[];H.dsa_q2=[];H.dsa_q3=[];
 S.open.ode1=true;S.open.ode2=true;S.open.ode3=false;S.open.ode4=true;S.open.ode5=false;
@@ -740,103 +677,10 @@ function renderResult(){
 
 
 /* ---------- Learning Task (Graph): figures ---------- */
-function arr(p,q,rs,re,col){var dx=q[0]-p[0],dy=q[1]-p[1],L=Math.sqrt(dx*dx+dy*dy),ux=dx/L,uy=dy/L,
-  sx=p[0]+ux*rs,sy=p[1]+uy*rs,ex=q[0]-ux*re,ey=q[1]-uy*re,bx=ex-ux*11,by=ey-uy*11,nx=-uy*5,ny=ux*5;
-  return '<line x1="'+sx.toFixed(1)+'" y1="'+sy.toFixed(1)+'" x2="'+bx.toFixed(1)+'" y2="'+by.toFixed(1)+'" stroke="'+col+'" stroke-width="1.6"/><polygon points="'+ex.toFixed(1)+','+ey.toFixed(1)+' '+(bx+nx).toFixed(1)+','+(by+ny).toFixed(1)+' '+(bx-nx).toFixed(1)+','+(by-ny).toFixed(1)+'" fill="'+col+'"/>';}
-function dotFig(P,E,w,h,lab){
-  var s='<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" role="img" aria-label="'+lab+'" style="display:block;margin:14px 0 6px;max-width:100%;height:auto">';
-  E.forEach(function(e){s+=arr(P[e[0]],P[e[1]],6,7,'#222');});
-  Object.keys(P).forEach(function(k){var p=P[k];s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="5" fill="#111"/><text x="'+(p[0]+p[2])+'" y="'+(p[1]+p[3])+'" font-size="15" text-anchor="middle" fill="#222">'+k+'</text>';});
-  return s+'</svg>';}
-function circFig(P,E,w,h,lab,undirected,fill){
-  var s='<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" role="img" aria-label="'+lab+'" style="display:block;margin:14px 0 6px;max-width:100%;height:auto">';
-  E.forEach(function(e){if(undirected){var a=P[e[0]],b=P[e[1]];s+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="#222" stroke-width="2.4"/>';}else s+=arr(P[e[0]],P[e[1]],17,18,'#222');});
-  Object.keys(P).forEach(function(k){var p=P[k];s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="17" fill="'+(fill||'#fff')+'" stroke="#222" stroke-width="2"/><text x="'+p[0]+'" y="'+(p[1]+5)+'" font-size="15" font-weight="600" text-anchor="middle" fill="#222">'+k+'</text>';});
-  if(undirected)E.forEach(function(e){if(e[2]!=null){var a=P[e[0]],b=P[e[1]];s+='<text x="'+((a[0]+b[0])/2+e[3])+'" y="'+((a[1]+b[1])/2+e[4])+'" font-size="15" fill="#1e88e5" font-weight="600" text-anchor="middle">'+e[2]+'</text>';}});
-  return s+'</svg>';}
-
-var G1=dotFig({a:[40,110,-14,4],b:[140,24,0,-10],c:[240,110,0,-12],d:[140,200,0,22],e:[400,110,14,4],f:[400,260,14,18],g:[40,260,-14,18]},
-  [['a','b'],['c','b'],['a','d'],['d','c'],['e','c'],['f','e'],['g','f'],['g','a']],440,290,'Directed graph with vertices a to g');
-var G2=dotFig({a:[150,24,16,-4],b:[30,100,-14,4],e:[270,100,14,4],c:[70,225,-14,16],d:[230,225,14,16]},
-  [['b','a'],['a','e'],['e','d'],['d','c'],['b','c']],300,260,'Directed pentagon graph with vertices a to e');
-var TOPO1=circFig({1:[30,110],2:[120,40],3:[120,180],4:[240,110],5:[330,40],6:[330,180]},
-  [[1,2],[1,3],[2,4],[2,5],[3,4],[3,6],[4,5],[4,6]],360,220,'Directed acyclic graph with vertices 1 to 6');
-var TOPO2=circFig({A:[40,30],B:[240,30],C:[40,150],D:[240,150],E:[140,265]},
-  [['A','B'],['A','C'],['A','D'],['B','C'],['B','D'],['C','E'],['D','E']],280,295,'Directed acyclic graph with vertices A to E');
-var PQRS=circFig({P:[40,30],Q:[240,30],R:[40,150],S:[240,150]},
-  [['P','Q'],['P','R'],['R','Q'],['S','Q'],['S','R']],280,190,'Directed graph with vertices P, Q, R, S');
-var WG=circFig({A:[40,85],B:[160,30],C:[160,140],D:[280,85]},
-  [['A','B',2,-14,-8],['A','C',3,-14,18],['B','D',2,14,-8],['C','D',6,14,18]],320,175,'Weighted undirected graph',true,'#8fd3ee');
-function cell(v,b){return '<td style="border:1px solid #9db4e0;width:48px;height:36px;text-align:center;'+(b?'background:#fff3c4;font-weight:700;border-style:dashed':'')+'">'+v+'</td>';}
-var MATFIG=WG+'<table style="border-collapse:collapse;margin:8px 0 4px;font-size:15px"><tr><td></td><th style="width:48px">A</th><th>B</th><th>C</th><th>D</th></tr>'+
-  '<tr><th>A</th>'+cell(0)+cell(2)+cell(3)+cell(0)+'</tr>'+
-  '<tr><th>B</th>'+cell(2)+cell(0)+cell(0)+cell('&#9312;',1)+'</tr>'+
-  '<tr><th>C</th>'+cell('&#9313;',1)+cell(0)+cell(0)+cell(6)+'</tr>'+
-  '<tr><th>D</th>'+cell(0)+cell(2)+cell('&#9314;',1)+cell(0)+'</tr></table>';
-function alRow(items){return '<div style="display:flex;align-items:center;gap:8px;margin:6px 0">'+items.map(function(x,k){var b=typeof x==="string";
-  return (k?'<span style="color:#00acc1">&rarr;</span>':'')+'<span style="min-width:42px;height:34px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #9db4e0;border-radius:4px;font-weight:600;'+(b?'background:#fff3c4;border-style:dashed':'background:#eaf0fb')+'">'+(b?x:x)+'</span>';}).join('')+'</div>';}
-var ALFIG='<div style="margin:12px 0 4px">'+alRow([0,1,2,'&#9312;'])+alRow([1,0,'&#9313;'])+alRow([2,0,'&#9314;'])+alRow([3,'&#9315;'])+'</div>';
-
-var UP={A:[30,26],B:[130,26],C:[230,26],D:[30,114],E:[130,114],F:[230,114],G:[305,70]};
-var UE=[["A","B"],["B","C"],["A","D"],["A","E"],["B","E"],["C","E"],["C","F"],["C","G"],["D","E"],["E","F"],["F","G"]];
-function gFrame(green,dark,tree,big){
-  var s='<svg viewBox="0 0 335 140" role="img" aria-label="Graph traversal frame"'+(big?' style="width:330px;max-width:100%;height:auto;border:0;background:none;margin-top:12px"':'')+'>';
-  UE.forEach(function(e){var a=UP[e[0]],b=UP[e[1]];
-    var t=tree.some(function(x){return x===e[0]+e[1]||x===e[1]+e[0];});
-    s+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="'+(t?'#3f9a0b':'#5b5594')+'" stroke-width="'+(t?4:1.4)+'"/>';});
-  Object.keys(UP).forEach(function(k){var p=UP[k],f=dark.indexOf(k)>-1?'#22202e':(green.indexOf(k)>-1?'#4c9a0a':'#fff');
-    s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="11" fill="'+f+'" stroke="#3b3680" stroke-width="1.5"/><text x="'+p[0]+'" y="'+(p[1]+4)+'" font-size="12" font-weight="700" text-anchor="middle" fill="#d81b60">'+k+'</text>';});
-  return s+'</svg>';}
-var T_ALL=["AB","BC","CE","ED","EF","FG"];
-var DS=[["A","",[]],["AB","",["AB"]],["ABC","",["AB","BC"]],["ABCE","",["AB","BC","CE"]],["ABCED","",["AB","BC","CE","ED"]],
- ["ABCE","D",["AB","BC","CE","ED"]],["ABCEF","D",["AB","BC","CE","ED","EF"]],["ABCEFG","D",T_ALL],["ABCEF","DG",T_ALL],["ABCE","DGF",T_ALL],
- ["ABC","DGFE",T_ALL],["AB","DGFEC",T_ALL],["A","DGFECB",T_ALL],["","DGFECBA",T_ALL]];
-var DORD=[14,12,7,8,6,3,11,13,10,9,2,5,4,1];
-var BS=[["A","",[]],["ABDE","",["AB","AD","AE"]],["ABCDEF","",["AB","AD","AE","CE","EF"]],["ABCDEFG","",["AB","AD","AE","CE","EF","CG"]]];
-var BORD=[3,2,1,4];
 function nums(n){var r=[];for(var i=1;i<=n;i++)r.push(String(i));return r;}
+QS.dsa_lt1=[];
 
-QS.dsa_lt1=[
-{t:"Complete the adjacency list below (drag the numbers into the boxes, or click a number to place it):",type:"drop",w:8,fig:ALFIG,lab:["\u2190 \u2460 (row 0)","\u2190 \u2461 (row 1)","\u2190 \u2462 (row 2)","\u2190 \u2463 (row 3)"],o:["0","2","3","1"],a:[2,1,3,0]},
-{t:"Given the graph above, what is the outdegree of vertex c:",fig:G1,type:"text",w:2,a:"1"},
-{t:"Given the graph above, what is the outdegree of vertex a:",fig:G2,type:"text",w:2,a:"1"},
-{t:"Given the graph above, what is the degree of vertex b:",fig:G2,type:"text",w:2,a:"2"},
-{t:"Traverse the graph using DFS. Match each frame to its step number:",fig:gFrame("","",[],true).replace('<svg','<svg').replace(/#22202e|#4c9a0a/g,'#fff'),type:"match",w:14,o:nums(14),
-  frames:DORD.map(function(n){var d=DS[n-1];return gFrame(d[0],d[1],d[2]);}),a:DORD.map(function(n){return n-1;})},
-{t:"Given the graph above, what is the indegree of vertex a:",fig:G1,type:"text",w:2,a:"1"},
-{t:"Given the graph above, what is the outdegree of vertex e:",fig:G1,type:"text",w:2,a:"1"},
-{t:"Given the graph above, what is the degree of vertex a:",fig:G1,type:"text",w:2,a:"3"},
-{t:"Given the graph above, what is the degree of vertex d:",fig:G1,type:"text",w:2,a:"2"},
-{t:"Given the graph above, what is the outdegree of vertex e:",fig:G2,type:"text",w:2,a:"1"},
-{t:"Complete the adjacency matrix of the corresponding graph below (drag the numbers into the boxes, or click a number to place it):",fig:MATFIG,type:"drop",w:6,lab:["\u2190 \u2460 (B, D)","\u2190 \u2461 (C, A)","\u2190 \u2462 (D, C)"],o:["2","6","3"],a:[0,2,1]},
-{t:"Find the topological sort for the given graph:",fig:TOPO1,type:"multi",w:2,o:["1 3 2 4 5 6","1 2 3 4 5 6","1 3 2 5 4 6","1 3 2 4 6 5","1 2 3 4 6 5"],a:[0,1,3,4]},
-{t:"Find the topological sort for the given graph:",fig:TOPO2,type:"multi",w:2,o:["A B D C E","A B C D E","A D B E C","A D B C E","A B C E D"],a:[0,1]},
-{t:"Given the graph above, what is the outdegree of vertex g:",fig:G1,type:"text",w:2,a:"2"},
-{t:"Given the graph above, what is the outdegree of vertex c:",fig:G2,type:"text",w:2,a:"0"},
-{t:"Given the graph above, what is the degree of vertex f:",fig:G1,type:"text",w:2,a:"2"},
-{t:"Which of the following is/are TRUE given the graph below:",fig:PQRS,type:"multi",w:2,o:["Both PSRQ and SPRQ are topological orderings.","PSRQ is the only topological ordering.","The graph does not have any topological ordering.","Both PQRS and SRPQ are topological orderings."],a:[0]},
-{t:"Given the graph above, what is the indegree of vertex b:",fig:G2,type:"text",w:2,a:"0"},
-{t:"Traverse the graph using BFS. Match each frame to its step number:",fig:gFrame("","",[],true).replace(/#22202e|#4c9a0a/g,'#fff'),type:"match",w:4,o:nums(4),
-  frames:BORD.map(function(n){var d=BS[n-1];return gFrame(d[0],d[1],d[2]);}),a:BORD.map(function(n){return n-1;})},
-{t:"Given the graph above, what is the indegree of vertex d:",fig:G1,type:"text",w:2,a:"1"},
-{t:"Given the graph above, what is the outdegree of vertex b:",fig:G1,type:"text",w:2,a:"0"},
-{t:"Given the graph above, what is the indegree of vertex f:",fig:G1,type:"text",w:2,a:"1"},
-{t:"Given the graph above, what is the indegree of vertex d:",fig:G2,type:"text",w:2,a:"1"},
-{t:"Given the graph above, what is the degree of vertex d:",fig:G2,type:"text",w:2,a:"2"}
-];
-
-QS.dsa_q2=[
-{t:"In an ordered linear search, if the value at the current index is greater than the (search) value, what should you do?",type:"radio",o:["return 0","increment index","return -1","return index","stop program"],a:[2]},
-{t:"What is the BEST CASE COMPLEXITY of a LINEAR SEARCH?",type:"radio",o:["O(log n)","O(n^2)","O(n)","O(n log n)","O(1)"],a:[4]},
-{t:"The index will be returned when you found the value.",type:"radio",o:["True","False"],a:[0]},
-{t:"What is the WORST CASE COMPLEXITY of a BINARY SEARCH?",type:"radio",o:["O(n^2)","O(1)","O(n)","O(log n)","O(n log n)"],a:[3]},
-{t:"Binary search reduces the work by half at each comparison.",type:"radio",o:["True","False"],a:[0]},
-{t:"What is the BEST CASE COMPLEXITY of a BINARY SEARCH?",type:"radio",o:["O(n^2)","O(1)","O(n log n)","O(n)","O(log n)"],a:[1]},
-{t:"What is the WORST CASE COMPLEXITY of a LINEAR SEARCH?",type:"radio",o:["O(log n)","O(n)","O(n log n)","O(1)","O(n^2)"],a:[1]},
-{t:"When does the BEST CASE for a BINARY SEARCH happen?",type:"radio",o:["When the value is not on the list","When the value is at the middle","When the value is at the first index","When the value is at the last index"],a:[1]},
-{t:"0 will be returned when the value is not found.",type:"radio",o:["True","False"],a:[1]},
-{t:"When does the BEST CASE for a LINEAR SEARCH happen?",type:"radio",o:["When the value is at the middle index","When the value is at the first index","When the value is at the last index","When the value is not on the list"],a:[1]}
-];
+QS.dsa_q2=[];
 META.dsa_q2={limit:"30 mins",secs:1800,method:"Highest grade",pass:"Not specified",grade:10};
 /* ---------------- Supabase: quizzes + attempts ---------------- */
 var sb=null;
