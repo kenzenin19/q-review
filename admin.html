@@ -295,13 +295,15 @@ function renderTD(){
 }
 
 /* ---- Accounts ---- */
+var SA=false;
+function effView(p){return !!(p.alt_view||(SA&&!p.sched_exempt))}
 function renderA(){
   var f=$("af").value,q=$("aq").value.toLowerCase(),pend=PF.filter(function(p){return p.status==="pending"}).length;
   $("pb").textContent=pend;$("pb").classList.toggle("hidden",!pend);
   var l=PF.filter(function(p){return(!f||p.status===f)&&(!q||((p.full_name||"")+(p.email||"")).toLowerCase().indexOf(q)>-1)});
   $("al").innerHTML=l.map(function(p){var id=" data-id='"+p.user_id+"'";
-    return"<div class='qr'><div class='qh'><div class='t'><b style='font-size:16px'>"+esc(p.full_name||"(no name)")+"</b> <span class='pill "+(p.status==="approved"?"on":"off")+"'>"+p.status+"</span>"+(p.alt_view?" <span class='pill lk'>Courses page</span>":"")+((p.full_name||"").trim().split(/\s+/).length<2?" <span class='pill off warn'>Check name: not a full name?</span>":"")+"<br><small>"+esc(p.email)+" · Requested "+new Date(p.created_at).toLocaleString()+devInfo(p.user_id)+"</small></div></div><div class='acts'>"+
-    (p.status!=="approved"?"<button class='s' data-a='ap'"+id+">Approve</button>":"")+(p.status==="pending"?"<button class='s d' data-a='rj'"+id+">Reject</button>":"")+(p.status==="approved"?"<button class='s d' data-a='rv'"+id+">Revoke access</button>":"")+(DV[p.user_id]?"<button class='s' data-a='rd'"+id+">Reset device</button>":"")+"<button class='s"+(p.alt_view?" lkon":"")+"' data-a='dc'"+id+">"+(p.alt_view?"Courses page: ON (turn off)":"Courses page: OFF (turn on)")+"</button></div></div>"}).join("")||"<p class='help'>No accounts here.</p>";
+    return"<div class='qr'><div class='qh'><div class='t'><b style='font-size:16px'>"+esc(p.full_name||"(no name)")+"</b> <span class='pill "+(p.status==="approved"?"on":"off")+"'>"+p.status+"</span>"+(effView(p)?" <span class='pill lk'>Courses page"+(p.alt_view?"":" (schedule)")+"</span>":"")+(p.sched_exempt?" <span class='pill off'>Exempt from schedule</span>":"")+((p.full_name||"").trim().split(/\s+/).length<2?" <span class='pill off warn'>Check name: not a full name?</span>":"")+"<br><small>"+esc(p.email)+" · Requested "+new Date(p.created_at).toLocaleString()+devInfo(p.user_id)+"</small></div></div><div class='acts'>"+
+    (p.status!=="approved"?"<button class='s' data-a='ap'"+id+">Approve</button>":"")+(p.status==="pending"?"<button class='s d' data-a='rj'"+id+">Reject</button>":"")+(p.status==="approved"?"<button class='s d' data-a='rv'"+id+">Revoke access</button>":"")+(DV[p.user_id]?"<button class='s' data-a='rd'"+id+">Reset device</button>":"")+"<button class='s"+(effView(p)?" lkon":"")+"' data-a='dc'"+id+">"+(effView(p)?"Courses page: ON"+(p.alt_view?"":" (schedule)")+" (turn off)":"Courses page: OFF (turn on)")+"</button></div></div>"}).join("")||"<p class='help'>No accounts here.</p>";
 }
 function setStatus(col,val,st,ok){sb.from("profiles").update({status:st,reviewed_at:new Date().toISOString()}).eq(col,val).then(function(r){if(r.error)msg(r.error.message,1);else{msg(ok);load()}})}
 $("af").onchange=renderA;$("aq").oninput=renderA;
@@ -309,7 +311,10 @@ $("al").onclick=function(e){var b=e.target.closest("button");if(!b)return;var id
   if(a==="ap")setStatus("user_id",id,"approved","Approved");
   if(a==="rj")setStatus("user_id",id,"rejected","Rejected");
   if(a==="rd"&&confirm("Reset this student's device? They can then sign in on a new phone."))sb.from("account_devices").delete().eq("user_id",id).then(function(r){if(r.error)msg(r.error.message,1);else{msg("Device reset");load()}});
-  if(a==="dc"){var pp=PF.filter(function(x){return x.user_id===id})[0],nv=!(pp&&pp.alt_view);sb.from("profiles").update({alt_view:nv}).eq("user_id",id).then(function(r){if(r.error)msg(/alt_view/.test(r.error.message)?"Run 011_view_mode.sql in Supabase first.":r.error.message,1);else{msg(nv?"Courses page ON for this student":"Courses page OFF: normal site");load()}})}
+  if(a==="dc"){var pp=PF.filter(function(x){return x.user_id===id})[0]||{},on=effView(pp),upd;
+    if(on)upd=SA?{alt_view:false,sched_exempt:true}:{alt_view:false};
+    else upd=(SA&&pp.sched_exempt)?{sched_exempt:false}:{alt_view:true};
+    sb.from("profiles").update(upd).eq("user_id",id).then(function(r){if(r.error)msg(/sched_exempt/.test(r.error.message)?"Run 014_schedule_exempt.sql in Supabase first.":/alt_view/.test(r.error.message)?"Run 011_view_mode.sql in Supabase first.":r.error.message,1);else{msg(on?"Courses page OFF: this student sees the normal site":"Courses page ON for this student");load()}})}
   if(a==="rv"&&confirm("Remove this student's access?"))setStatus("user_id",id,"rejected","Access revoked")};
 function setViewAll(v){var n=PF.length;if(!n||!confirm((v?"Send ALL student accounts to the courses page?":"Switch every account back to the normal site?")))return;sb.from("profiles").update({alt_view:v}).neq("user_id","00000000-0000-0000-0000-000000000000").then(function(r){if(r.error)msg(/alt_view/.test(r.error.message)?"Run 011_view_mode.sql in Supabase first.":r.error.message,1);else{msg(v?"Courses page ON for all students":"All accounts back to normal");load()}})}
 $("dall").onclick=function(){setViewAll(true)};$("dclr").onclick=function(){setViewAll(false)};
@@ -330,6 +335,7 @@ function wkStatus(){
   sb.rpc("courses_all_active").then(function(r){
     var el=$("wkst");if(!el)return;
     if(r.error){el.textContent="Run 013_courses_timer.sql in Supabase first.";return}
+    var was=SA;SA=!!r.data;if(was!==SA)renderA();
     el.innerHTML="Right now students see: <b style='color:"+(r.data?"#c5221f":"#137333")+"'>"+(r.data?"COURSES PAGE":"NORMAL SITE")+"</b>"+(WC.schedule_on?"":" (schedule is paused)");
   },function(){});
 }
