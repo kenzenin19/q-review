@@ -235,7 +235,23 @@ var tick=null, root=document.getElementById("root");
 /* ---------------- helpers ---------------- */
 function $(id){return document.getElementById(id);}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
-function fx(s){return esc(s).replace(/(^|[^\w.\/])(\d+)\/(\d+)(?![\w.\/])/g,function(m,p,n,d){return p+'<span class="frac"><span class="fn">'+n+'</span><span class="fd">'+d+'</span></span>';});}
+function fx(s){
+  s=String(s);var R=/[A-Za-z0-9.'\u2032\u2019^\u00b2\u00b3\u00b9\u2070-\u209f]/;
+  var out="",last=0,p=0;
+  function grp(str,at,dir){var d=0,k=at;while(k>=0&&k<str.length){var c=str[k];if(c==="(")d+=dir>0?1:-1;else if(c===")")d+=dir>0?-1:1;if(d===0)return k;k+=dir;}return -1;}
+  while((p=s.indexOf("/",p))>-1){
+    var a,b,ls,re,L,Rr;
+    if(s[p-1]===")"){a=grp(s,p-1,-1);if(a<0){p++;continue;}ls=a;L=s.slice(a+1,p-1);}
+    else{a=p;while(a>0&&R.test(s[a-1]))a--;ls=a;L=s.slice(a,p);}
+    if(s[p+1]==="("){b=grp(s,p+1,1);if(b<0){p++;continue;}re=b+1;Rr=s.slice(p+2,b);}
+    else{b=p+1;while(b<s.length&&R.test(s[b]))b++;re=b;Rr=s.slice(p+1,b);}
+    var bad=!L||!Rr||s[ls-1]==="/"||s[re]==="/"||/^[A-Za-z]{3,}$/.test(L)||/^[A-Za-z]{3,}$/.test(Rr)||/^[0-9.]*\.$/.test(Rr)||(L==="N"&&Rr==="A");
+    if(bad){p++;continue;}
+    out+=esc(s.slice(last,ls))+'<span class="frac"><span class="fn">'+esc(L)+'</span><span class="fd">'+esc(Rr)+'</span></span>';
+    last=re;p=re;
+  }
+  return out+esc(s.slice(last));
+}
 function fmt(s){return "0:"+String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");}
 function answered(i){if(Q[i].type==="match")return matchAns(i).some(function(x){return x>-1;});if(Q[i].type==="drop")return dropAns(i).some(function(x){return x>-1;});return Q[i].type==="text"?S.ans[i].trim()!=="":S.ans[i].length>0;}
 function nrm(v){return String(v==null?"":v).toLowerCase().replace(/\s+/g,"");}
