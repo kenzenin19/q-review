@@ -88,6 +88,37 @@ td,th{padding:6px 6px}}
 
  <section id="p-accounts" class="hidden"><div class="card"><h2>Account approvals</h2>
   <div class="row"><select id="af"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="">All</option></select><input id="aq" placeholder="Search name or email" style="flex:1;min-width:140px"><button class="s" id="aall">Approve all pending</button><button class="s" id="dall">Courses page: ALL</button><button class="s" id="dclr">Courses page: clear all</button></div>
+  <div class="card" style="margin-top:10px">
+   <b>⏱ Courses page timer — every student (not admins)</b>
+   <div class="help" id="ctst" style="margin:6px 0">Loading…</div>
+   <div class="row">
+    <label class="help">From (empty = now) <input type="datetime-local" id="ctf"></label>
+    <label class="help">Until <input type="datetime-local" id="ctu"></label>
+   </div>
+   <div class="row" style="margin-top:8px">
+    <button class="s" data-ctq="15">+15 min</button><button class="s" data-ctq="30">+30 min</button><button class="s" data-ctq="60">+1 hour</button><button class="s" data-ctq="120">+2 hours</button><button class="s" data-ctq="180">+3 hours</button>
+    <button class="s" id="cts">Start timer</button><button class="s d" id="ctx">Stop timer</button>
+   </div>
+   <div class="help" style="margin-top:6px">While it is active, every student is sent to the courses page and quizzes are blocked. It switches off by itself at the end time, even if this page is closed. Students already in a quiz are moved out within 10 seconds.</div>
+  </div>
+  <div class="card" style="margin-top:10px">
+   <b>📅 Weekly schedule — repeats every week</b>
+   <div class="help" id="wkst" style="margin:6px 0">Loading…</div>
+   <div class="help">Inside these times every student (not admins) sees the courses page. Outside them, the normal site. The end minute counts too (8:00 PM = until 8:00:59 PM).</div>
+   <div id="wklist" style="margin:8px 0"></div>
+   <div class="row" id="wkdays">
+    <label class="help"><input type="checkbox" value="1" checked> Mon</label><label class="help"><input type="checkbox" value="2" checked> Tue</label><label class="help"><input type="checkbox" value="3" checked> Wed</label><label class="help"><input type="checkbox" value="4" checked> Thu</label><label class="help"><input type="checkbox" value="5" checked> Fri</label><label class="help"><input type="checkbox" value="6" checked> Sat</label><label class="help"><input type="checkbox" value="0" checked> Sun</label>
+   </div>
+   <div class="row" style="margin-top:6px">
+    <label class="help">Courses page from <input type="time" id="wks" value="06:00"></label>
+    <label class="help">until <input type="time" id="wke" value="20:00"></label>
+    <button class="s" id="wkadd">Add rule</button>
+   </div>
+   <div class="row" style="margin-top:8px">
+    <button class="s" id="wkoff">Pause whole schedule</button>
+    <label class="help">Time zone <input id="wktz" style="width:150px" placeholder="Asia/Manila"></label><button class="s" id="wktzs">Save zone</button>
+   </div>
+  </div>
   <div id="al"></div></div></section>
 
  <section id="p-subjects" class="hidden"><div class="card"><h2>Subjects</h2>
@@ -153,7 +184,7 @@ function load(){
     else if(r[1].error){msg("Lock columns missing. Run 010_locks.sql in Supabase first.",1)}
     SUB=r[0].data||[];QZ=r[1].data||[];AT=r[2].data||[];EV=r[3].error?[]:(r[3].data||[]);PF=r[4].error?[]:(r[4].data||[]);DV={};(r[5]&&!r[5].error?(r[5].data||[]):[]).forEach(function(d){DV[d.user_id]=d});
     $("usub").innerHTML=subOpts();$("eS").innerHTML=subOpts();$("rsub").innerHTML=subOpts(1);
-    fillRq();renderQ();renderS();renderR();renderT();renderA();
+    fillRq();renderQ();renderS();renderR();renderT();renderA();loadTimer();loadSched();
   });
 }
 
@@ -295,6 +326,85 @@ $("al").onclick=function(e){var b=e.target.closest("button");if(!b)return;var id
   if(a==="rv"&&confirm("Remove this student's access?"))setStatus("user_id",id,"rejected","Access revoked")};
 function setViewAll(v){var n=PF.length;if(!n||!confirm((v?"Send ALL student accounts to the courses page?":"Switch every account back to the normal site?")))return;sb.from("profiles").update({alt_view:v}).neq("user_id","00000000-0000-0000-0000-000000000000").then(function(r){if(r.error)msg(/alt_view/.test(r.error.message)?"Run 011_view_mode.sql in Supabase first.":r.error.message,1);else{msg(v?"Courses page ON for all students":"All accounts back to normal");load()}})}
 $("dall").onclick=function(){setViewAll(true)};$("dclr").onclick=function(){setViewAll(false)};
+/* ---- courses-page timer for all students ---- */
+var TM=null;
+function ctLoc(d){var z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,16)}
+function ctDur(ms){var t=Math.max(0,Math.round(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60);return (h?h+"h ":"")+m+"m "+(t%60)+"s"}
+function ctFmt(t){return new Date(t).toLocaleString()}
+function drawTimer(){
+  var el=$("ctst");if(!el)return;
+  if(!TM){el.textContent="No timer set.";return}
+  var now=Date.now(),a=new Date(TM.starts_at).getTime(),b=new Date(TM.ends_at).getTime();
+  if(now>=b)el.textContent="No timer running. Last one ended "+ctFmt(b)+".";
+  else if(now<a)el.innerHTML="<b>Scheduled</b>: "+ctFmt(a)+" → "+ctFmt(b)+" (starts in "+ctDur(a-now)+")";
+  else el.innerHTML="<b style='color:#c5221f'>ACTIVE</b> — all students are on the courses page. Ends "+ctFmt(b)+" (in "+ctDur(b-now)+")";
+}
+function loadTimer(){
+  sb.from("courses_timer").select("starts_at,ends_at").eq("id",1).limit(1).then(function(r){
+    if(r&&r.error){$("ctst").textContent="Run 013_courses_timer.sql in Supabase first.";return}
+    TM=(r.data&&r.data[0])||null;drawTimer();
+  },function(){});
+}
+document.querySelectorAll("[data-ctq]").forEach(function(b){b.onclick=function(){
+  var f=$("ctf").value?new Date($("ctf").value):new Date();
+  $("ctu").value=ctLoc(new Date(f.getTime()+(+b.dataset.ctq)*6e4))}});
+$("cts").onclick=function(){
+  var f=$("ctf").value?new Date($("ctf").value):new Date(),u=$("ctu").value?new Date($("ctu").value):null;
+  if(!u||isNaN(u)||isNaN(f)||u<=f){msg("Pick an end time after the start (or tap +30 min etc.).",1);return}
+  var now=f<=new Date();
+  if(!confirm((now?"Send ALL students to the courses page now":"Schedule the courses page for all students from "+f.toLocaleString())+", until "+u.toLocaleString()+"?"))return;
+  sb.from("courses_timer").upsert({id:1,starts_at:f.toISOString(),ends_at:u.toISOString()}).then(function(r){
+    if(r.error){msg(/courses_timer/.test(r.error.message)?"Run 013_courses_timer.sql in Supabase first.":r.error.message,1);return}
+    msg(now?"Timer started. Students are moved to the courses page.":"Timer scheduled.");loadTimer()});
+};
+$("ctx").onclick=function(){
+  if(!confirm("Stop the timer? Students go back to the normal site right away."))return;
+  sb.from("courses_timer").delete().eq("id",1).then(function(r){
+    if(r.error)msg(r.error.message,1);else{msg("Timer stopped.");TM=null;drawTimer()}});
+};
+setInterval(drawTimer,1000);setInterval(loadTimer,30000);
+/* ---- weekly schedule ---- */
+var WK=[],WC={tz:"Asia/Manila",schedule_on:true},DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function wkFmt(m){var h=Math.floor(m/60),mi=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+(mi<10?"0":"")+mi+" "+ap}
+function wkMin(v){var p=(v||"").split(":");return p.length<2?NaN:(+p[0])*60+(+p[1])}
+function wkDays(d){d=d.slice().sort(function(a,b){return((a+6)%7)-((b+6)%7)});return d.length===7?"Every day":d.map(function(x){return DN[x]}).join(", ")}
+function drawSched(){
+  var l=$("wklist");if(!l)return;
+  l.innerHTML=WK.length?WK.map(function(r){
+    return "<div class='ar'><span><b style='display:inline'>"+wkDays(r.days)+"</b> · courses page "+wkFmt(r.start_min)+" → "+wkFmt(r.end_min)+(r.start_min>r.end_min?" (overnight)":"")+(r.enabled?"":" · <i>paused</i>")+"</span>"
+      +"<span><button class='s' data-wt='"+r.id+"'>"+(r.enabled?"Pause":"Resume")+"</button> <button class='s d' data-wd='"+r.id+"'>Delete</button></span></div>"}).join(""):"<div class='help'>No rules yet. Example: every day 6:00 AM → 8:00 PM.</div>";
+  $("wkoff").textContent=WC.schedule_on?"Pause whole schedule":"Resume whole schedule";
+  $("wktz").value=WC.tz;
+}
+function wkStatus(){
+  sb.rpc("courses_all_active").then(function(r){
+    var el=$("wkst");if(!el)return;
+    if(r.error){el.textContent="Run 013_courses_timer.sql in Supabase first.";return}
+    el.innerHTML="Right now students see: <b style='color:"+(r.data?"#c5221f":"#137333")+"'>"+(r.data?"COURSES PAGE":"NORMAL SITE")+"</b>"+(WC.schedule_on?"":" (schedule is paused)");
+  },function(){});
+}
+function loadSched(){
+  Promise.all([sb.from("courses_schedule").select("*").order("id"),sb.from("courses_cfg").select("tz,schedule_on").eq("id",1).limit(1)]).then(function(r){
+    if(r[0].error||r[1].error){var e=$("wkst");if(e)e.textContent="Run 013_courses_timer.sql in Supabase first.";return}
+    WK=r[0].data||[];if(r[1].data&&r[1].data[0])WC=r[1].data[0];drawSched();wkStatus();
+  },function(){});
+}
+$("wkadd").onclick=function(){
+  var days=[].slice.call(document.querySelectorAll("#wkdays input:checked")).map(function(c){return +c.value}),a=wkMin($("wks").value),b=wkMin($("wke").value);
+  if(!days.length||isNaN(a)||isNaN(b)){msg("Pick at least one day and both times.",1);return}
+  sb.from("courses_schedule").insert({days:days,start_min:a,end_min:b}).then(function(r){
+    if(r.error)msg(r.error.message,1);else{msg("Rule added.");loadSched()}});
+};
+$("wklist").addEventListener("click",function(ev){
+  var b=ev.target.closest("button");if(!b)return;
+  if(b.dataset.wd){if(confirm("Delete this rule?"))sb.from("courses_schedule").delete().eq("id",b.dataset.wd).then(function(r){if(r.error)msg(r.error.message,1);else loadSched()})}
+  else if(b.dataset.wt){var rr=WK.filter(function(x){return String(x.id)===b.dataset.wt})[0];sb.from("courses_schedule").update({enabled:!(rr&&rr.enabled)}).eq("id",b.dataset.wt).then(function(r){if(r.error)msg(r.error.message,1);else loadSched()})}
+});
+$("wkoff").onclick=function(){sb.from("courses_cfg").update({schedule_on:!WC.schedule_on}).eq("id",1).then(function(r){if(r.error)msg(r.error.message,1);else{msg(WC.schedule_on?"Schedule paused.":"Schedule resumed.");loadSched()}})};
+$("wktzs").onclick=function(){var z=$("wktz").value.trim();if(!z)return;sb.from("courses_cfg").update({tz:z}).eq("id",1).then(function(r){if(r.error)msg(r.error.message,1);else{msg("Time zone saved.");loadSched()}})};
+setInterval(wkStatus,30000);
+
+
 $("aall").onclick=function(){var n=PF.filter(function(p){return p.status==="pending"}).length;if(n&&confirm("Approve all "+n+" pending accounts?"))setStatus("status","pending","approved","Approved "+n+" accounts")};
 
 /* ---- Subjects ---- */
