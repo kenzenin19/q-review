@@ -22,6 +22,7 @@ details.g>summary{cursor:pointer;padding:12px 16px;font-weight:600;font-size:15p
 .badge{background:var(--soft);color:var(--ink);border-radius:10px;padding:1px 9px;font-size:12px;font-weight:500}
 .qr{padding:10px 16px;border-top:1px solid var(--line)}.qh{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.qh .t{flex:1;min-width:200px}
 .qh small{color:var(--mut)}code{background:#8882;padding:1px 5px;border-radius:4px;font-size:12px}
+#dalert{background:#f6c6c6;color:#5b1111;border:1px solid #e39a9a;border-radius:10px;padding:10px 12px;margin:0 0 12px}#dalert b{display:block;margin-bottom:6px}#dalert .ar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:5px 0;border-top:1px solid #e39a9a}#dalert .ar span{flex:1;min-width:160px}
 .pill{font-size:11px;border-radius:9px;padding:1px 8px}.pill.on{background:#cfe9d4;color:#14532d}.pill.off{background:#8883;color:var(--mut)}.pill.lk{background:#f6c6c6;color:#7a1414;display:inline-flex;gap:4px;align-items:center}.pill.lk svg{width:11px;height:11px}button.s svg{width:12px;height:12px;vertical-align:-1px}button.s.lkon{background:#f6c6c6;color:#7a1414}details.g.slocked>summary{opacity:.85}
 .acts{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
 .pv{margin-top:8px;font-size:13px;background:#8881;border-radius:8px;padding:8px 12px}.pv ol{margin:0;padding-left:20px}.pv li{margin:6px 0}.pv .ok{color:var(--ok);font-weight:600}
@@ -43,6 +44,7 @@ td,th{padding:6px 6px}}
  <div class="row"><input id="em" type="email" placeholder="email" autocomplete="username"><input id="pw" type="password" placeholder="password" autocomplete="current-password"><button id="go">Sign in</button></div></div>
 
 <div id="app" class="hidden">
+ <div id="dalert" class="hidden"></div>
  <nav class="tabs"><button data-t="quizzes" class="on">Quizzes</button><button data-t="upload">Upload</button><button data-t="results">Results</button><button data-t="students">Students</button><button data-t="accounts">Accounts <span class="badge hidden" id="pb"></span></button><button data-t="subjects">Subjects</button></nav>
 
  <section id="p-quizzes">
@@ -125,18 +127,25 @@ function boot(){sb.auth.getSession().then(function(r){
   sb.rpc("is_admin").then(function(a){
     if(!a.data){msg("This account is not an admin. Add it to the admins table.",1);return}
     $("login").classList.add("hidden");$("app").classList.remove("hidden");$("out").classList.remove("hidden");
-    $("who").textContent=r.data.session.user.email;load().then(admRestore);
+    $("who").textContent=r.data.session.user.email;load().then(admRestore);startAlerts();
   });
 })}
 
 var DV={};
-function devInfo(id){var d=DV[id];return d?" · Device bound "+new Date(d.bound_at).toLocaleDateString()+" ("+(/Mobi|Android|iPhone|iPad/i.test(d.user_agent||"")?"phone":"computer")+")":" · No device yet"}
+function devBlocked(id){
+  var n=0,last=null;
+  for(var i=0;i<EV.length;i++){var e=EV[i];
+    if(e.user_id===id&&e.kind==="device_blocked"){n++;if(!last)last=e}}
+  if(!n)return "";
+  return " · <b style='color:#c5221f'>⚠ "+n+" attempt"+(n>1?"s":"")+" to sign in on another device · last: "+(/Mobi|Android|iPhone|iPad/i.test(last.detail||"")?"phone":"computer")+", "+new Date(last.created_at).toLocaleString()+"</b>"}
+function devInfo(id){return devInfo0(id)+devBlocked(id)}
+function devInfo0(id){var d=DV[id];return d?" · Device bound "+new Date(d.bound_at).toLocaleDateString()+" ("+(/Mobi|Android|iPhone|iPad/i.test(d.user_agent||"")?"phone":"computer")+")":" · No device yet"}
 function load(){
   return Promise.all([
     sb.from("subjects").select("*").order("position").order("name"),
     sb.from("quizzes").select("id,slug,title,published,meta,subject_id,locked,lock_attempts,lock_scores,lock_answers,questions(count)").order("slug"),
     sb.from("attempts").select("user_id,quiz_slug,student_name,score,total,secs,created_at").order("created_at",{ascending:false}).limit(500),
-    sb.from("events").select("user_id,student_name,quiz_slug,kind,created_at").order("created_at",{ascending:false}).limit(3000),
+    sb.from("events").select("user_id,student_name,quiz_slug,kind,created_at,detail").order("created_at",{ascending:false}).limit(3000),
     sb.from("profiles").select("*").order("created_at",{ascending:false}),
     sb.from("account_devices").select("user_id,bound_at,user_agent")
   ]).then(function(r){
@@ -261,7 +270,7 @@ function renderTD(){
   var qt="<tr><th>Quiz</th><th>Attempts</th><th>Best</th><th>Latest</th><th>Answer views</th><th>Reviews</th><th>Tab switches</th></tr>"+Object.keys(sl).map(function(k){
     var at=s.att.filter(function(x){return x.quiz_slug===k}),ev=s.ev.filter(function(e){return e.quiz_slug===k});
     return"<tr><td>"+esc(qn(k))+"</td><td>"+at.length+"</td><td>"+(at.length?Math.round(Math.max.apply(null,at.map(pc)))+"%":"-")+"</td><td>"+(at.length?Math.round(pc(at[0]))+"%":"-")+"</td><td>"+cnt(ev,"view_answers")+"</td><td>"+cnt(ev,"view_review")+"</td><td>"+cnt(ev,"tab_switch")+"</td></tr>"}).join("");
-  var LB={view_answers:"Viewed answers",view_review:"Viewed an attempt review",tab_switch:"Left the quiz tab"};
+  var LB={view_answers:"Viewed answers",view_review:"Viewed an attempt review",tab_switch:"Left the quiz tab",device_blocked:"Blocked: tried to sign in on another device"};
   var tl=s.att.map(function(x){return{t:x.created_at,x:"Finished "+qn(x.quiz_slug)+": "+x.score+" / "+x.total}}).concat(s.ev.map(function(e){return{t:e.created_at,x:(LB[e.kind]||e.kind)+": "+qn(e.quiz_slug)}})).sort(function(a,b){return b.t>a.t?1:-1}).slice(0,40).map(function(x){return"<div class='qr' style='padding:6px 0'><small class='help'>"+new Date(x.t).toLocaleString()+"</small> &nbsp;"+esc(x.x)+"</div>"}).join("")||"<p class='help'>No activity.</p>";
   $("td").innerHTML="<button class='s' id='tback'>← All students</button><div class='card' style='margin-top:10px'><h2>"+esc(s.name)+"</h2><div class='stats' style='margin:0'>"+chips+"</div></div><div class='card'><h2>Performance by subject</h2>"+sub+"</div><div class='card'><h2>By quiz</h2><div class='tw'><table>"+qt+"</table></div></div><div class='card'><h2>Recent activity</h2>"+tl+"</div>";
   $("tback").onclick=function(){openS=null;renderT()};
@@ -310,5 +319,31 @@ function admRestore(){var d;try{d=JSON.parse(localStorage.getItem("qr_admin_stat
     openS=d.s||null;renderQ();renderR();renderT();renderA();
     tab(["quizzes","upload","results","students","accounts","subjects"].indexOf(d.t)>-1?d.t:"quizzes");
     if(d.y)setTimeout(function(){window.scrollTo(0,d.y)},60)}catch(e){}}
+/* ---- alert when a student tries to sign in from another device ---- */
+var DA_KEY="qr_dev_seen",daNotified="",daBase=document.title;
+function daSeen(){try{return localStorage.getItem(DA_KEY)||new Date(Date.now()-7*864e5).toISOString()}catch(e){return new Date(Date.now()-7*864e5).toISOString()}}
+function daSet(t){try{localStorage.setItem(DA_KEY,t)}catch(e){}}
+function pollAlerts(){
+  sb.from("events").select("user_id,student_name,detail,created_at").eq("kind","device_blocked").gt("created_at",daSeen()).order("created_at",{ascending:false}).limit(20).then(function(r){
+    var l=(r&&!r.error&&r.data)||[],box=$("dalert");
+    if(!l.length){box.classList.add("hidden");document.title=daBase;return}
+    box.innerHTML="<b>⚠ "+l.length+" sign-in attempt"+(l.length>1?"s":"")+" from another device</b>"+l.slice(0,5).map(function(e){
+      var ph=/Mobi|Android|iPhone|iPad/i.test(e.detail||"")?"phone":"computer";
+      return "<div class='ar'><span><b style='display:inline'>"+esc(e.student_name||"Unknown")+"</b> tried a new "+ph+" · "+new Date(e.created_at).toLocaleString()+"</span><button class='s' data-da='"+e.user_id+"'>Allow new device</button></div>"}).join("")
+      +(l.length>5?"<div class='help'>+ "+(l.length-5)+" more</div>":"")
+      +"<div class='row' style='margin-top:8px'><button class='s' id='daOk'>Dismiss</button>"+(window.Notification&&Notification.permission==="default"?"<button class='s' id='daN'>Enable pop-up alerts</button>":"")+"</div>";
+    box.classList.remove("hidden");document.title="("+l.length+") "+daBase;
+    if(window.Notification&&Notification.permission==="granted"&&l[0].created_at!==daNotified){daNotified=l[0].created_at;try{new Notification("Another-device sign-in attempt",{body:(l[0].student_name||"A student")+" tried to sign in on a different device."})}catch(e){}}
+  });
+}
+function startAlerts(){
+  $("dalert").addEventListener("click",function(ev){
+    var b=ev.target.closest("button");if(!b)return;
+    if(b.id==="daOk"){daSet(new Date().toISOString());pollAlerts()}
+    else if(b.id==="daN"){Notification.requestPermission().then(pollAlerts)}
+    else if(b.dataset.da&&confirm("Reset this student's device? They can then sign in on the new one."))sb.from("account_devices").delete().eq("user_id",b.dataset.da).then(function(x){if(x.error)msg(x.error.message,1);else{msg("Device reset. The student can sign in on the new device now.");daSet(new Date().toISOString());pollAlerts();load()}});
+  });
+  pollAlerts();setInterval(pollAlerts,20000);
+}
 boot();
 </script></body></html>
