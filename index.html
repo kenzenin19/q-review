@@ -69,6 +69,7 @@ h2.qt{font-weight:500;font-size:30px;margin:10px 0 14px}
 .opt{display:flex;align-items:center;gap:12px;margin:14px 0 0 18px;font-size:15px;cursor:pointer}
 .opt input{width:18px;height:18px;accent-color:var(--accent)}
 .opt input.txt{border:1px solid #ccc;border-radius:6px;padding:8px 10px;width:min(280px,100%);height:auto;font:15px Montserrat,sans-serif;margin-left:8px}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 .15em;font-size:.9em}.frac .fn{border-bottom:1.5px solid currentColor;padding:0 .3em}.frac .fd{padding:0 .3em}
 .nav{display:flex;justify-content:space-between;margin-top:30px;gap:12px}
 .jump{display:flex;gap:8px;justify-content:center;margin-top:26px;flex-wrap:wrap}
 .jump button{width:34px;height:34px;border-radius:6px;border:1px solid #bbb;background:#fff;font-size:13px}
@@ -234,6 +235,7 @@ var tick=null, root=document.getElementById("root");
 /* ---------------- helpers ---------------- */
 function $(id){return document.getElementById(id);}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function fx(s){return esc(s).replace(/(^|[^\w.\/])(\d+)\/(\d+)(?![\w.\/])/g,function(m,p,n,d){return p+'<span class="frac"><span class="fn">'+n+'</span><span class="fd">'+d+'</span></span>';});}
 function fmt(s){return "0:"+String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");}
 function answered(i){if(Q[i].type==="match")return matchAns(i).some(function(x){return x>-1;});if(Q[i].type==="drop")return dropAns(i).some(function(x){return x>-1;});return Q[i].type==="text"?S.ans[i].trim()!=="":S.ans[i].length>0;}
 function nrm(v){return String(v==null?"":v).toLowerCase().replace(/\s+/g,"");}
@@ -454,13 +456,13 @@ function renderQuiz(){
     body='<div class="opt">Answer:<input class="txt" type="text" id="txt" value="'+esc(S.ans[i])+'"></div>';
   }else if(q.type==="drop"){
     var d=dropAns(i);
-    body='<div class="eq">'+q.lab.map(function(l,s){return '<span class="slot" data-s="'+s+'" tabindex="0" title="Click to remove">'+(d[s]>-1?esc(q.o[d[s]]):"")+'</span><span>'+l+'</span>';}).join("")+'</div>'+
-      '<div class="bank">'+q.o.map(function(o,k){return '<span class="tile'+(d.indexOf(k)>-1?" used":"")+'" draggable="true" data-t="'+k+'">'+esc(o)+'</span>';}).join("")+'</div>';
+    body='<div class="eq">'+q.lab.map(function(l,s){return '<span class="slot" data-s="'+s+'" tabindex="0" title="Click to remove">'+(d[s]>-1?fx(q.o[d[s]]):"")+'</span><span>'+l+'</span>';}).join("")+'</div>'+
+      '<div class="bank">'+q.o.map(function(o,k){return '<span class="tile'+(d.indexOf(k)>-1?" used":"")+'" draggable="true" data-t="'+k+'">'+fx(o)+'</span>';}).join("")+'</div>';
   }else if(q.type==="match"){
     body=matchBody(i);
   }else{
     body=q.o.map(function(o,k){
-      return '<label class="opt"><input type="'+(q.type==="radio"?"radio":"checkbox")+'" name="o" data-i="'+k+'"'+(S.ans[i].indexOf(k)>-1?" checked":"")+'>'+String.fromCharCode(97+k)+'. '+esc(o)+'</label>';
+      return '<label class="opt"><input type="'+(q.type==="radio"?"radio":"checkbox")+'" name="o" data-i="'+k+'"'+(S.ans[i].indexOf(k)>-1?" checked":"")+'>'+String.fromCharCode(97+k)+'. '+fx(o)+'</label>';
     }).join("");
   }
   root.innerHTML=
@@ -470,7 +472,7 @@ function renderQuiz(){
    '<div class="qh"><h2 class="qt">Question '+(i+1)+'</h2>'+
    '<button class="flag'+(S.flag[i]?" on":"")+'" id="flag" type="button">&#9873; '+(S.flag[i]?"Remove flag":"Flag question")+'</button></div>'+
    '<div class="meta"><span id="status">'+(answered(i)?"Answer saved":"Not yet answered")+'</span><span>Marked out of '+(q.w||1).toFixed(2)+'</span></div>'+
-   '<div class="q"><p>'+esc(q.t)+'</p>'+(q.fig||"")+body+'</div>'+
+   '<div class="q"><p>'+fx(q.t)+'</p>'+(q.fig||"")+body+'</div>'+
    '<div class="nav">'+(i>0?'<button class="btn ghost" id="prev" type="button">Previous page</button>':'<span></span>')+
    '<button class="btn primary" id="next" type="button">'+(last?"Finish attempt ...":"Next page")+'</button></div>'+
    '<div class="jump">'+Q.map(function(_,k){return '<button type="button" class="'+(answered(k)?"done":"")+' '+(k===i?"cur":"")+'" data-j="'+k+'" aria-label="Question '+(k+1)+'">'+(k+1)+'</button>';}).join("")+'</div>'+
@@ -637,13 +639,13 @@ function revBody(q,i){
     var dd=(a&&a.length===q.lab.length)?a:q.lab.map(function(){return -1;});
     return '<div class="eq">'+q.lab.map(function(l,s2){
       var bad=dd[s2]>-1&&q.o[dd[s2]]!==q.o[q.a[s2]];
-      return (bad?'<span class="slot" style="background:#fde0e0;border-color:#c62828;color:#7a1414;text-decoration:line-through">'+esc(q.o[dd[s2]])+'</span> ':'')+'<span class="slot gok">'+esc(q.o[q.a[s2]])+'</span><span>'+l+'</span>';}).join("")+'</div>';
+      return (bad?'<span class="slot" style="background:#fde0e0;border-color:#c62828;color:#7a1414;text-decoration:line-through">'+fx(q.o[dd[s2]])+'</span> ':'')+'<span class="slot gok">'+fx(q.o[q.a[s2]])+'</span><span>'+l+'</span>';}).join("")+'</div>';
   }
   var isR=q.type==="radio";
   h=q.o.map(function(o,k){
     var sel=a.indexOf(k)>-1,cor=q.a.indexOf(k)>-1;
     var cls=cor?' right':(sel?' wrong':'');
-    return '<div class="ro'+cls+'"><span class="tg '+(isR?"rad":"chk")+(cor?" on":(sel?" bad":""))+'" aria-hidden="true"></span>'+String.fromCharCode(97+k)+'. '+esc(o)+
+    return '<div class="ro'+cls+'"><span class="tg '+(isR?"rad":"chk")+(cor?" on":(sel?" bad":""))+'" aria-hidden="true"></span>'+String.fromCharCode(97+k)+'. '+fx(o)+
       (cor?'<span class="rk">&#10003; Correct</span>':(sel?'<span class="rk">&#10007; Your answer</span>':''))+'</div>';
   }).join("");
   return h;
@@ -653,7 +655,7 @@ function renderAnswers(){
   var qs=Q.map(function(q,i){
     return '<div class="rq"><div class="rinfo"><div class="rn">Question <b>'+(i+1)+'</b></div>'+
       '<div class="rm">Marked out of '+(q.w||1).toFixed(2)+'</div></div>'+
-      '<div class="rbody"><p>'+esc(q.t)+'</p>'+(q.fig||"")+revBody(q,i)+'</div></div>';
+      '<div class="rbody"><p>'+fx(q.t)+'</p>'+(q.fig||"")+revBody(q,i)+'</div></div>';
   }).join("");
   S.ans=old;
   root.innerHTML=
@@ -677,7 +679,7 @@ function renderReview(idx){
     return '<div class="rq"><div class="rinfo"><div class="rn">Question <b>'+(i+1)+'</b></div>'+
       '<div class="rs">'+(ok?"Correct":(answered(i)?"Incorrect":"Not answered"))+'</div>'+
       (lks(S.k)?'':'<div class="rm">Mark '+(ok?(q.w||1):0).toFixed(2)+' out of '+(q.w||1).toFixed(2)+'</div>')+'</div>'+
-      '<div class="rbody"><p>'+esc(q.t)+'</p>'+(q.fig||"")+revBody(q,i)+'</div></div>';
+      '<div class="rbody"><p>'+fx(q.t)+'</p>'+(q.fig||"")+revBody(q,i)+'</div></div>';
   }).join("");
   root.innerHTML=
   '<button class="btn back" id="back" type="button">Back</button>'+
@@ -692,7 +694,7 @@ function renderResult(){
   var used=TOTAL-S.left,LS=lkv(S.k),LSC=lks(S.k),LA=lka(S.k),n=Q.length,nc=0,nu=0;
   var items=Q.map(function(q,i){var ok=correct(i),an=answered(i);if(ok)nc++;else if(!an)nu++;
     return '<div class="it '+(ok?"ok":"no")+'"><span class="tag">'+(ok?"&#10003; Correct":(an?"&#10007; Incorrect":"&#10007; Not answered"))+' &middot; Question '+(i+1)+'</span>'+
-    '<p>'+esc(q.t)+'</p><p><b>Your answer:</b> '+esc(show(i))+'</p>'+(ok?"":'<p><b>Correct answer:</b> '+esc(right(i))+'</p>')+'</div>';}).join("");
+    '<p>'+fx(q.t)+'</p><p><b>Your answer:</b> '+esc(show(i))+'</p>'+(ok?"":'<p><b>Correct answer:</b> '+esc(right(i))+'</p>')+'</div>';}).join("");
   var G=mt(S.k).grade||10,pc=tot(Q)?Math.round(S.score/tot(Q)*100):0;
   var chips=LSC?'<div class="lknote">'+LOCK_ICO+'<span>Your score is locked.</span></div>':
     '<p class="score">'+S.score+' / '+tot(Q)+' <span style="font-size:18px;color:var(--muted)">('+pc+'%)</span></p>'+
